@@ -8,7 +8,12 @@ export default function Home() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="min-h-screen pt-20 bg-black pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-black via-gray-950 to-primary/5 relative overflow-hidden">
+      <section className="  relative min-h-screen pt-20 pb-20 px-4 sm:px-6 lg:px-8 bg-black bg-gradient-to-br from-black via-gray-950 to-primary/5 overflow-hidden">
+        <img
+          src="/shiva.jpg"
+          alt="Shiva Background"
+          className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-luminosity pointer-events-none"
+        />
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 right-20 w-72 h-72 bg-primary rounded-full blur-3xl" />
           <div className="absolute bottom-20 left-20 w-96 h-96 bg-secondary rounded-full blur-3xl" />

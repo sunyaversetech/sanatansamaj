@@ -1,11 +1,11 @@
-import Navbar from '@/components/navbar'
-import { Mail, Phone, MapPin, Clock } from 'lucide-react'
+import Navbar from "@/components/navbar";
+import { Mail, Phone, MapPin, Clock } from "lucide-react";
 
 export default function Contact() {
   return (
     <>
       <Navbar />
-      
+
       <div className="pt-20">
         {/* Hero Section */}
         <section className="bg-black text-white py-20 px-4 sm:px-6 lg:px-8">
@@ -22,31 +22,25 @@ export default function Contact() {
         {/* Contact Information */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
           <div className="max-w-6xl mx-auto">
-            <div className="grid md:grid-cols-4 gap-8 mb-20">
+            <div className="grid md:grid-cols-3 gap-8 mb-20">
               {[
                 {
                   icon: Mail,
-                  title: 'Email',
-                  content: 'info@sanatansamaj.org',
-                  subtitle: 'Response within 24 hours',
+                  title: "Email",
+                  content: "info@sanatansamaj.org",
+                  subtitle: "Response within 24 hours",
                 },
                 {
                   icon: Phone,
-                  title: 'Phone',
-                  content: '+1 (555) 123-4567',
-                  subtitle: 'Available 9AM - 6PM EST',
+                  title: "Phone",
+                  content: "0433677022",
+                  subtitle: "Available 9AM - 6PM EST",
                 },
                 {
                   icon: MapPin,
-                  title: 'Location',
-                  content: '123 Community Street',
-                  subtitle: 'City, State 12345',
-                },
-                {
-                  icon: Clock,
-                  title: 'Office Hours',
-                  content: 'Mon - Fri: 9AM - 6PM',
-                  subtitle: 'Sat - Sun: By appointment',
+                  title: "Location",
+                  content: "47 Murrijinelle Circuit, Bonner",
+                  subtitle: " ACT 2914, Australia.",
                 },
               ].map((item, index) => (
                 <div key={index} className="text-center">
@@ -57,16 +51,13 @@ export default function Contact() {
                   <p className="text-gray-700 font-semibold mb-1">
                     {item.content}
                   </p>
-                  <p className="text-sm text-gray-500">
-                    {item.subtitle}
-                  </p>
+                  <p className="text-sm text-gray-500">{item.subtitle}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Contact Form */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
           <div className="max-w-2xl mx-auto">
             <h2 className="text-3xl font-serif font-bold text-black mb-12 text-center">
@@ -145,8 +136,7 @@ export default function Contact() {
 
               <button
                 type="submit"
-                className="w-full px-8 py-4 bg-primary text-white font-semibold rounded-lg hover:bg-opacity-90 transition-all transform hover:scale-105"
-              >
+                className="w-full px-8 py-4 bg-primary text-white font-semibold rounded-lg hover:bg-opacity-90 transition-all transform hover:scale-105">
                 Send Message
               </button>
             </form>
@@ -162,37 +152,37 @@ export default function Contact() {
             <div className="space-y-6">
               {[
                 {
-                  q: 'How do I become a member?',
-                  a: 'You can join our community through our membership page. We offer flexible plans to suit everyone\'s needs. Visit the Membership page for more details.',
+                  q: "How do I become a member?",
+                  a: "You can join our community through our membership page. We offer flexible plans to suit everyone's needs. Visit the Membership page for more details.",
                 },
                 {
-                  q: 'Can I attend events without being a member?',
-                  a: 'Some events are open to the public, but members receive priority access and discounts. Check our Events page for more information.',
+                  q: "Can I attend events without being a member?",
+                  a: "Some events are open to the public, but members receive priority access and discounts. Check our Events page for more information.",
                 },
                 {
-                  q: 'Do you offer spiritual guidance for beginners?',
-                  a: 'Absolutely! We welcome beginners with our introductory programs and mentorship opportunities. Our community leaders are here to guide you.',
+                  q: "Do you offer spiritual guidance for beginners?",
+                  a: "Absolutely! We welcome beginners with our introductory programs and mentorship opportunities. Our community leaders are here to guide you.",
                 },
                 {
-                  q: 'What if I have financial constraints?',
-                  a: 'We offer sliding scale memberships and service-based options. Please contact us to discuss alternatives that work for your situation.',
+                  q: "What if I have financial constraints?",
+                  a: "We offer sliding scale memberships and service-based options. Please contact us to discuss alternatives that work for your situation.",
                 },
                 {
-                  q: 'Can I volunteer with Sanatansamaj?',
-                  a: 'We always welcome passionate volunteers! Contact us with your interests, and we&apos;ll find the perfect role for you.',
+                  q: "Can I volunteer with Sanatansamaj?",
+                  a: "We always welcome passionate volunteers! Contact us with your interests, and we&apos;ll find the perfect role for you.",
                 },
                 {
-                  q: 'Are children welcome at events?',
-                  a: 'Yes! We have family-friendly events and special children&apos;s programs. Some events have specific age recommendations - please check details.',
+                  q: "Are children welcome at events?",
+                  a: "Yes! We have family-friendly events and special children&apos;s programs. Some events have specific age recommendations - please check details.",
                 },
               ].map((faq, index) => (
-                <div key={index} className="p-6 bg-gradient-to-br from-gray-50 to-white rounded-lg border border-gray-200">
+                <div
+                  key={index}
+                  className="p-6 bg-gradient-to-br from-gray-50 to-white rounded-lg border border-gray-200">
                   <h3 className="text-lg font-serif font-bold text-black mb-3">
                     {faq.q}
                   </h3>
-                  <p className="text-gray-700 leading-relaxed">
-                    {faq.a}
-                  </p>
+                  <p className="text-gray-700 leading-relaxed">{faq.a}</p>
                 </div>
               ))}
             </div>
@@ -206,11 +196,12 @@ export default function Contact() {
               We&apos;re Here to Help
             </h2>
             <p className="text-xl text-white/80 mb-8">
-              Have questions? Reach out to us and our friendly team will assist you promptly.
+              Have questions? Reach out to us and our friendly team will assist
+              you promptly.
             </p>
           </div>
         </section>
       </div>
     </>
-  )
+  );
 }

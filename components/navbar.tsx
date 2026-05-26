@@ -48,13 +48,10 @@ export default function Navbar() {
             <Image
               src="/logo.png"
               alt="Sanatansamaj Logo"
-              width={48}
-              height={48}
-              className="rounded-full"
+              width={70}
+              height={70}
+              className=""
             />
-            <span className="text-xl font-serif font-bold hidden sm:block">
-              Sanatansamaj
-            </span>
           </Link>
 
           {/* Desktop Navigation */}
