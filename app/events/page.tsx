@@ -1,35 +1,24 @@
+"use client";
 import Navbar from "@/components/navbar";
 import Link from "next/link";
 import { Calendar, MapPin, Clock, Users } from "lucide-react";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import EventCard from "@/components/Event/EventCard";
+import { formatDate } from "date-fns";
 
 export default function Events() {
-  const upcomingEvents = [
-    {
-      title: "Haritalika Teej",
-      date: "August 15, 2026",
-      location: "Main Temple/Community Hall",
-      attendees: "200+",
-      image: "/teej.webp",
-      category: "Festival",
-    },
-    {
-      title: "Shree Krishna Janmashtami",
-      date: "September 5, 2026",
-      location: "Main Temple",
-      attendees: "300+",
-      image: "/krishna.webp",
-      category: "Festival",
-    },
-    {
-      title: "Dashain Festival",
-      date: "October 11 - 20, 2026",
-      location: "Community-wide",
-      attendees: "500+",
-      image: "/dashain.webp",
-      category: "Festival",
-    },
-  ];
+  const [eventData, setEventData] = useState<{ data: any[] }>({ data: [] });
+  const getEvents = async () => {
+    const res = await fetch("http://localhost:3000/api/sanatansamaj/event");
+    const data = await res.json();
+    return setEventData(data);
+  };
+
+  useEffect(() => {
+    getEvents();
+  }, []);
+
   return (
     <>
       <Navbar />
@@ -48,11 +37,13 @@ export default function Events() {
           </div>
         </section>
 
-        {/* Events List */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-2 gap-8">
-              {upcomingEvents.map((event, index) => (
+              {/* {eventData?.data?.map((event) => (
+                <EventCard key={event._id} event={event} />
+              ))} */}
+              {eventData?.data?.map((event, index) => (
                 <div
                   key={index}
                   className="p-8 bg-white rounded-lg shadow-lg border-l-4 border-primary hover:shadow-xl transition-shadow">
@@ -74,23 +65,28 @@ export default function Events() {
                   <div className="space-y-3 mb-6">
                     <div className="flex items-start gap-3">
                       <Calendar className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
-                      <span className="text-gray-700">{event.date}</span>
+                      <span className="text-gray-700">
+                        {formatDate(event.dateRange.from, "yyyy-MM-dd")}{" "}
+                        {event.dateRange.from === event.dateRange.to
+                          ? ""
+                          : ` - ${formatDate(event.dateRange.to, "yyyy-MM-dd")}`}
+                      </span>
                     </div>
                     <div className="flex items-start gap-3">
                       <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
                       <span className="text-gray-700">{event.location}</span>
                     </div>
-                    <div className="flex items-start gap-3">
+                    {/* <div className="flex items-start gap-3">
                       <Users className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
                       <span className="text-gray-700">
                         {event.attendees} expected attendees
                       </span>
-                    </div>
+                    </div> */}
                   </div>
-
+                  {/* 
                   <button className="w-full px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-opacity-90 transition-all">
                     Register Now
-                  </button>
+                  </button> */}
                 </div>
               ))}
             </div>
