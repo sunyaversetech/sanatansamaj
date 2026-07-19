@@ -1,21 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Form,
@@ -26,53 +17,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { membershipPlans, orgInfo } from "@/lib/site-data";
-
-const formSchema = z
-  .object({
-    fullName: z.string().min(2, "Full name is required"),
-    telephone: z.string().min(6, "A valid telephone number is required"),
-    email: z.string().email("Please enter a valid email address"),
-    planTier: z.enum(["single", "family", "life"]),
-    spouseName: z.string().optional(),
-    spouseTelephone: z.string().optional(),
-    spouseEmail: z.string().optional(),
-    familyMember1: z.string().optional(),
-    familyMember2: z.string().optional(),
-    familyMember3: z.string().optional(),
-    address: z.string().min(5, "Residential address is required"),
-    specialInterests: z.string().optional(),
-    paymentMethod: z.enum(["Direct Deposit (Bank Transfer)", "Cash", "Cheque"]),
-    transferReference: z.string().optional(),
-    amount: z.coerce.number().positive("Enter the amount remitted"),
-    signOffDate: z.string().min(1, "Please provide the sign-off date"),
-  })
-  .superRefine((data, ctx) => {
-    if (data.planTier === "family") {
-      if (!data.spouseName) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Spouse name is required for a family membership",
-          path: ["spouseName"],
-        });
-      }
-      if (data.paymentMethod === "Direct Deposit (Bank Transfer)" && !data.transferReference) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Reference name is required",
-          path: ["transferReference"],
-        });
-      }
-    }
-  });
-
-type FormValues = z.infer<typeof formSchema>;
+import {
+  membershipApplicationSchema,
+  type MembershipApplication,
+} from "@/lib/membership-schema";
 
 export default function MembershipApplyPage() {
-  const router = useRouter();
   const today = new Date().toISOString().slice(0, 10);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<MembershipApplication>({
+    resolver: zodResolver(membershipApplicationSchema),
     defaultValues: {
       fullName: "",
       telephone: "",
@@ -86,28 +40,35 @@ export default function MembershipApplyPage() {
       familyMember3: "",
       address: "",
       specialInterests: "",
-      paymentMethod: "Direct Deposit (Bank Transfer)",
-      transferReference: "",
-      amount: 15,
       signOffDate: today,
     },
   });
 
   const planTier = form.watch("planTier");
   const isFamilyPlan = planTier === "family";
+  const selectedPlan = membershipPlans.find((p) => p.key === planTier);
+  const isSubmitting = form.formState.isSubmitting;
 
-  useEffect(() => {
-    const plan = membershipPlans.find((p) => p.key === planTier);
-    if (plan) form.setValue("amount", plan.amount);
-  }, [planTier, form]);
+  async function onSubmit(values: MembershipApplication) {
+    try {
+      const res = await fetch("/api/membership/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      const data = await res.json();
 
-  function onSubmit(values: FormValues) {
-    console.log("Membership application submitted:", values);
-    toast.success("Application submitted", {
-      description: "Thank you — our Secretary will be in touch shortly.",
-    });
-    form.reset();
-    router.push("/membership");
+      if (!res.ok || !data.url) {
+        throw new Error(data.error || "Could not start checkout");
+      }
+
+      window.location.href = data.url;
+    } catch (err) {
+      console.error("Checkout error:", err);
+      toast.error("Something went wrong", {
+        description: "We couldn't start the payment. Please try again.",
+      });
+    }
   }
 
   return (
@@ -352,81 +313,6 @@ export default function MembershipApplyPage() {
                 />
               </div>
 
-              {/* Payment */}
-              <div className="space-y-4 rounded-2xl bg-card p-5 shadow-sm">
-                <h3 className="text-cocoa-700">5. Payment Details</h3>
-                <FormField
-                  control={form.control}
-                  name="paymentMethod"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Payment Mechanism Used</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Direct Deposit (Bank Transfer)">
-                            Direct Deposit (Bank Transfer)
-                          </SelectItem>
-                          <SelectItem value="Cash">Cash</SelectItem>
-                          <SelectItem value="Cheque">Cheque</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="rounded-xl border border-border p-4 text-sm">
-                  <div className="mb-2 font-semibold">
-                    Please transfer the membership fee to this account:
-                  </div>
-                  <div>
-                    <strong>Account Name:</strong> Sanatan Samaj Australia
-                  </div>
-                  <div>
-                    <strong>BSB:</strong> 032713
-                  </div>
-                  <div>
-                    <strong>Account Number:</strong> 508265
-                  </div>
-                  <div className="mt-3">
-                    <FormField
-                      control={form.control}
-                      name="transferReference"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Your Transfer Account Name Reference
-                          </FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Total Remitted Amount ($)</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
               <div className="rounded-2xl bg-card p-5 shadow-sm">
                 <FormField
                   control={form.control}
@@ -443,9 +329,20 @@ export default function MembershipApplyPage() {
                 />
               </div>
 
-              <div className="flex justify-end border-t border-border pt-6">
-                <Button type="submit" size="lg">
-                  Submit Application Record
+              <div className="flex flex-col items-end gap-2 border-t border-border pt-6">
+                <p className="text-sm text-foreground/60">
+                  You&apos;ll pay securely via Stripe on the next step
+                  {selectedPlan ? ` — ${selectedPlan.price} AUD` : ""}.
+                </p>
+                <Button type="submit" size="lg" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      Redirecting to payment…
+                    </>
+                  ) : (
+                    `Continue to Payment${selectedPlan ? ` — ${selectedPlan.price}` : ""}`
+                  )}
                 </Button>
               </div>
             </form>

@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,24 +18,13 @@ import {
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { donationAmounts } from "@/lib/site-data";
-
-const formSchema = z.object({
-  firstName: z.string().min(2, "First name is required"),
-  lastName: z.string().min(2, "Last name is required"),
-  email: z.string().email("Please enter a valid email address"),
-  amount: z.coerce.number().positive("Enter a donation amount"),
-  isAnonymous: z.boolean(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+import { donationSchema, type Donation } from "@/lib/donation-schema";
 
 export default function DonateGivePage() {
-  const router = useRouter();
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<Donation>({
+    resolver: zodResolver(donationSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
+      fullName: "",
       email: "",
       amount: 0,
       isAnonymous: false,
@@ -44,14 +32,28 @@ export default function DonateGivePage() {
   });
 
   const selectedAmount = form.watch("amount");
+  const isSubmitting = form.formState.isSubmitting;
 
-  function onSubmit(values: FormValues) {
-    console.log("Donation submitted:", values);
-    toast.success("Thank you for your generosity", {
-      description: `Your $${values.amount} donation has been recorded.`,
-    });
-    form.reset();
-    router.push("/donate");
+  async function onSubmit(values: Donation) {
+    try {
+      const res = await fetch("/api/donate/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.url) {
+        throw new Error(data.error || "Could not start checkout");
+      }
+
+      window.location.href = data.url;
+    } catch (err) {
+      console.error("Checkout error:", err);
+      toast.error("Something went wrong", {
+        description: "We couldn't start the payment. Please try again.",
+      });
+    }
   }
 
   return (
@@ -69,34 +71,19 @@ export default function DonateGivePage() {
         <div className="mx-auto max-w-2xl">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>First Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Your first name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Your last name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Your full name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -166,8 +153,15 @@ export default function DonateGivePage() {
                 )}
               />
 
-              <Button type="submit" size="lg" className="w-full">
-                Donate Now
+              <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Redirecting to payment…
+                  </>
+                ) : (
+                  "Donate Now"
+                )}
               </Button>
               <p className="text-center text-xs text-foreground/55">
                 Your donation is secure and processed through our trusted

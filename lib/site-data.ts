@@ -5,6 +5,8 @@ export const orgInfo = {
   associationNumber: "A06140",
   phone: "0433 677 022",
   email: "sanatansamajaus@gmail.com",
+  // Inbox that receives new membership application notifications.
+  applicationsEmail: "info@sanatansamajaus.com.au",
   addressLines: ["47 Murrijinelle Circuit,", "Bonner ACT 2914, Australia"],
   bank: {
     accountName: "Sanatan Samaj Australia",
