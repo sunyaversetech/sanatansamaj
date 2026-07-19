@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
-import { getResend, EMAIL_FROM } from "@/lib/resend";
+import { sendEmail, EMAIL_FROM } from "@/lib/resend";
 import { membershipApplicationSchema } from "@/lib/membership-schema";
 import { donationSchema } from "@/lib/donation-schema";
 import { orgInfo } from "@/lib/site-data";
@@ -47,7 +47,6 @@ async function sendMembershipEmails(session: Stripe.Checkout.Session) {
     currency: session.currency ?? "aud",
   };
 
-  const resend = getResend();
   const orgEmail = renderOrgNotificationEmail(application);
   const welcomeEmail = renderWelcomeEmail(application);
 
@@ -59,13 +58,13 @@ async function sendMembershipEmails(session: Stripe.Checkout.Session) {
         typeof session.payment_intent === "string" ? session.payment_intent : null,
       createdAt: new Date(),
     }),
-    resend.emails.send({
+    sendEmail({
       from: EMAIL_FROM,
       to: orgInfo.applicationsEmail,
       subject: orgEmail.subject,
       html: orgEmail.html,
     }),
-    resend.emails.send({
+    sendEmail({
       from: EMAIL_FROM,
       to: application.email,
       subject: welcomeEmail.subject,
@@ -106,7 +105,6 @@ async function sendDonationEmails(session: Stripe.Checkout.Session) {
     currency: session.currency ?? "aud",
   };
 
-  const resend = getResend();
   const orgEmail = renderDonationOrgNotificationEmail(donation);
   const thankYouEmail = renderDonationThankYouEmail(donation);
 
@@ -118,13 +116,13 @@ async function sendDonationEmails(session: Stripe.Checkout.Session) {
         typeof session.payment_intent === "string" ? session.payment_intent : null,
       createdAt: new Date(),
     }),
-    resend.emails.send({
+    sendEmail({
       from: EMAIL_FROM,
       to: orgInfo.applicationsEmail,
       subject: orgEmail.subject,
       html: orgEmail.html,
     }),
-    resend.emails.send({
+    sendEmail({
       from: EMAIL_FROM,
       to: donation.email,
       subject: thankYouEmail.subject,
