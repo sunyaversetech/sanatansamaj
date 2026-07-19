@@ -1,182 +1,76 @@
-import Navbar from "@/components/navbar";
-import Link from "next/link";
-import { Award, Target, Heart } from "lucide-react";
+import Image from "next/image";
+import { Users } from "lucide-react";
+import { objectives, team } from "@/lib/site-data";
 
-export default function About() {
+export default function AboutPage() {
   return (
     <>
-      <Navbar />
-
-      <div className="pt-20">
-        {/* Hero Section */}
-        <section className="bg-black text-white py-20 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl sm:text-6xl font-serif font-bold mb-6">
-              About Us
-            </h1>
-            <p className="text-xl text-white/80 mb-8">
-              Learn about our mission, values, and the team behind Sanatansamaj
-            </p>
-          </div>
-        </section>
-
-        {/* Mission, Vision, Values */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="p-8 bg-gradient-to-br from-primary/10 to-transparent rounded-lg border border-primary/20">
-                <Target className="w-12 h-12 text-primary mb-4" />
-                <h3 className="text-2xl font-serif font-bold text-black mb-4">
-                  Our Mission
-                </h3>
-                <p className="text-gray-700 leading-relaxed">
-                  To preserve, promote, and celebrate Hindu culture,
-                  spirituality, and traditions while building a strong,
-                  supportive community that bridges heritage with modern life.
-                </p>
-              </div>
-              <div className="p-8 bg-gradient-to-br from-secondary/10 to-transparent rounded-lg border border-secondary/20">
-                <Heart className="w-12 h-12 text-secondary mb-4" />
-                <h3 className="text-2xl font-serif font-bold text-black mb-4">
-                  Our Values
-                </h3>
-                <p className="text-gray-700 leading-relaxed">
-                  Community, spirituality, cultural preservation, education,
-                  service, inclusivity, and mutual support form the foundation
-                  of everything we do.
-                </p>
-              </div>
-              <div className="p-8 bg-gradient-to-br from-primary/10 to-transparent rounded-lg border border-primary/20">
-                <Award className="w-12 h-12 text-primary mb-4" />
-                <h3 className="text-2xl font-serif font-bold text-black mb-4">
-                  Our Vision
-                </h3>
-                <p className="text-gray-700 leading-relaxed">
-                  A vibrant, thriving community where individuals of all
-                  backgrounds can connect, learn, and grow spiritually while
-                  celebrating our rich cultural heritage.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Spiritual Quote Section */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-primary/5 to-secondary/5 border-y border-primary/10">
-          <div className="max-w-4xl mx-auto text-center">
-            <p className="text-2xl sm:text-3xl font-serif italic text-gray-800 mb-4">
-              "Vasudhaiva Kutumbakam" - The World is One Family
-            </p>
-            <p className="text-lg text-gray-700">
-              This ancient Sanskrit philosophy guides our mission to build a
-              connected, compassionate community that honors diversity and
-              celebrates our shared humanity through the lens of Sanatan Dharma.
-            </p>
-          </div>
-        </section>
-
-        {/* About Content */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl font-serif font-bold text-black mb-8">
-              Who We Are
-            </h2>
-            <div className="space-y-6 text-gray-700 leading-relaxed">
-              <p>
-                Sanatansamaj is a vibrant community organization dedicated to
-                the promotion and preservation of Hindu culture, spirituality,
-                and traditions. We bring together individuals from diverse
-                backgrounds who share a deep appreciation for Sanatan Dharma and
-                its profound wisdom.
-              </p>
-              <p>
-                Founded on the principles of community service, educational
-                excellence, and spiritual growth, we have established ourselves
-                as a trusted space for those seeking to deepen their
-                understanding of Hindu philosophy and connect with like-minded
-                individuals.
-              </p>
-              <p>
-                Our community engages in a variety of activities including
-                religious ceremonies, cultural programs, educational workshops,
-                charitable endeavors, and social gatherings that foster a sense
-                of belonging and shared purpose.
-              </p>
-              <p>
-                Through our initiatives, we aim to ensure that the timeless
-                wisdom of the Vedas, Upanishads, and Bhagavad Gita remains
-                relevant and accessible to all, bridging the ancient teachings
-                with contemporary life.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Team Section */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl font-serif font-bold text-center text-black mb-16">
-              Our Team
-            </h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  name: "Santosh malla",
-                  role: "President ",
-                  bio: "With over 20 years of experience in community service and spiritual leadership, Rajesh founded Sanatansamaj to create a welcoming space for spiritual seekers.",
-                },
-                {
-                  name: "Prakash pokharel",
-                  role: "Treasurer",
-                  bio: "Prakash manages our financial operations and ensures transparency in our community's fiscal responsibilities.",
-                },
-                {
-                  name: "Basu dhakal",
-                  role: " Cultural Coordinator",
-                  bio: "Basu dhakal coordinates our events and community initiatives, ensuring every member feels valued and engaged in our growing community.",
-                },
-                {
-                  name: "Hemant bhandari",
-                  role: "Public officer",
-                  bio: "Hemant represents our community in public forums and ensures effective communication with local authorities and stakeholders.",
-                },
-              ].map((member, index) => (
-                <div
-                  key={index}
-                  className="p-8 bg-gradient-to-br from-gray-50 to-white rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
-                  <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full mb-4" />
-                  <h3 className="text-xl font-serif font-bold text-black mb-1">
-                    {member.name}
-                  </h3>
-                  <p className="text-primary font-semibold mb-4">
-                    {member.role}
-                  </p>
-                  <p className="text-gray-700 leading-relaxed text-sm">
-                    {member.bio}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-black text-white">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-serif font-bold mb-6">
-              Join Our Community Today
-            </h2>
-            <p className="text-xl text-white/80 mb-8">
-              Become part of our mission to preserve and celebrate Hindu culture
-            </p>
-            <Link
-              href="/membership"
-              className="inline-block px-8 py-4 bg-primary text-white font-semibold rounded-lg hover:bg-opacity-90 transition-all transform hover:scale-105">
-              Learn About Membership
-            </Link>
-          </div>
-        </section>
+      <div className="bg-card px-4 py-14 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <h6 className="mb-1 text-xs font-semibold tracking-widest text-gold-700 uppercase">
+            Our Story
+          </h6>
+          <h1>About Sanatan Samaj Australia</h1>
+        </div>
       </div>
+
+      <section className="px-4 py-14 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 md:grid-cols-2">
+          <div className="washed relative h-105 overflow-hidden rounded-3xl shadow-md">
+            <Image
+              src="/dashain.webp"
+              alt="Community gathering"
+              fill
+              className="object-cover"
+            />
+          </div>
+          <div>
+            <h2>Who We Are</h2>
+            <p className="text-foreground/80">
+              Sanatan Samaj Australia (SSA) was legally incorporated as an
+              association by the ACT Government on 4th May 2020 under the
+              Associations Incorporation Act 1991. We are a community of
+              devotees dedicated to nurturing Sanatan Dharma in the heart of
+              Canberra.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 py-14 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="mb-6">Our Objectives</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {objectives.map((obj) => (
+              <div
+                key={obj.n}
+                className="flex items-start gap-3 rounded-2xl bg-card p-5 shadow-sm"
+              >
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary font-heading text-[15px] text-primary-foreground">
+                  {obj.n}
+                </div>
+                <p className="m-0 text-sm text-foreground/80">{obj.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 pb-14 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="mb-6">Our Committee</h2>
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+            {team.map((role) => (
+              <div key={role}>
+                <div className="mb-3 flex size-30 items-center justify-center rounded-full bg-cocoa-200">
+                  <Users className="size-10 text-cocoa-600" />
+                </div>
+                <div className="font-semibold">{role}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </>
   );
 }

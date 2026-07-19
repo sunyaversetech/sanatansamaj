@@ -1,207 +1,107 @@
-import Navbar from "@/components/navbar";
-import { Mail, Phone, MapPin, Clock } from "lucide-react";
+"use client";
 
-export default function Contact() {
+import { FormEvent } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { orgInfo, socials } from "@/lib/site-data";
+
+export default function ContactPage() {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    toast.success("Message sent", {
+      description: "Thanks for reaching out — we'll reply soon.",
+    });
+    e.currentTarget.reset();
+  }
+
+  const mapQuery = encodeURIComponent(orgInfo.addressLines.join(", "));
+
   return (
     <>
-      <Navbar />
-
-      <div className="pt-20">
-        {/* Hero Section */}
-        <section className="bg-black text-white py-20 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl sm:text-6xl font-serif font-bold mb-6">
-              Contact Us
-            </h1>
-            <p className="text-xl text-white/80">
-              We&apos;d love to hear from you. Get in touch with us anytime.
-            </p>
-          </div>
-        </section>
-
-        {/* Contact Information */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-8 mb-20">
-              {[
-                {
-                  icon: Mail,
-                  title: "Email",
-                  content: "info@sanatansamaj.org",
-                  subtitle: "Response within 24 hours",
-                },
-                {
-                  icon: Phone,
-                  title: "Phone",
-                  content: "0433677022",
-                  subtitle: "Available 9AM - 6PM EST",
-                },
-                {
-                  icon: MapPin,
-                  title: "Location",
-                  content: "47 Murrijinelle Circuit, Bonner",
-                  subtitle: " ACT 2914, Australia.",
-                },
-              ].map((item, index) => (
-                <div key={index} className="text-center">
-                  <item.icon className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <h3 className="text-xl font-serif font-bold text-black mb-2">
-                    {item.title}
-                  </h3>
-                  <p className="text-gray-700 font-semibold mb-1">
-                    {item.content}
-                  </p>
-                  <p className="text-sm text-gray-500">{item.subtitle}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl font-serif font-bold text-black mb-12 text-center">
-              Send us a Message
-            </h2>
-            <form className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-black mb-2">
-                    First Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Your first name"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-black mb-2">
-                    Last Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Your last name"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-black mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-black mb-2">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  placeholder="(555) 123-4567"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-black mb-2">
-                  Subject
-                </label>
-                <select className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary transition-colors">
-                  <option>Membership Inquiry</option>
-                  <option>Event Information</option>
-                  <option>Donation</option>
-                  <option>Volunteer Opportunity</option>
-                  <option>General Inquiry</option>
-                  <option>Other</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-black mb-2">
-                  Message
-                </label>
-                <textarea
-                  placeholder="Your message here..."
-                  rows={6}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary transition-colors resize-none"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full px-8 py-4 bg-primary text-white font-semibold rounded-lg hover:bg-opacity-90 transition-all transform hover:scale-105">
-                Send Message
-              </button>
-            </form>
-          </div>
-        </section>
-
-        {/* FAQ Section */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl font-serif font-bold text-center text-black mb-16">
-              Frequently Asked Questions
-            </h2>
-            <div className="space-y-6">
-              {[
-                {
-                  q: "How do I become a member?",
-                  a: "You can join our community through our membership page. We offer flexible plans to suit everyone's needs. Visit the Membership page for more details.",
-                },
-                {
-                  q: "Can I attend events without being a member?",
-                  a: "Some events are open to the public, but members receive priority access and discounts. Check our Events page for more information.",
-                },
-                {
-                  q: "Do you offer spiritual guidance for beginners?",
-                  a: "Absolutely! We welcome beginners with our introductory programs and mentorship opportunities. Our community leaders are here to guide you.",
-                },
-                {
-                  q: "What if I have financial constraints?",
-                  a: "We offer sliding scale memberships and service-based options. Please contact us to discuss alternatives that work for your situation.",
-                },
-                {
-                  q: "Can I volunteer with Sanatansamaj?",
-                  a: "We always welcome passionate volunteers! Contact us with your interests, and we&apos;ll find the perfect role for you.",
-                },
-                {
-                  q: "Are children welcome at events?",
-                  a: "Yes! We have family-friendly events and special children&apos;s programs. Some events have specific age recommendations - please check details.",
-                },
-              ].map((faq, index) => (
-                <div
-                  key={index}
-                  className="p-6 bg-gradient-to-br from-gray-50 to-white rounded-lg border border-gray-200">
-                  <h3 className="text-lg font-serif font-bold text-black mb-3">
-                    {faq.q}
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed">{faq.a}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-black text-white">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-serif font-bold mb-6">
-              We&apos;re Here to Help
-            </h2>
-            <p className="text-xl text-white/80 mb-8">
-              Have questions? Reach out to us and our friendly team will assist
-              you promptly.
-            </p>
-          </div>
-        </section>
+      <div className="bg-card px-4 py-14 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <h6 className="mb-1 text-xs font-semibold tracking-widest text-gold-700 uppercase">
+            We&apos;d Love To Hear From You
+          </h6>
+          <h1>Get in Touch</h1>
+        </div>
       </div>
+
+      <section className="px-4 py-14 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 md:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <h3 className="mb-4">Contact Details</h3>
+            <div className="mb-4">
+              <h6 className="mb-0.5 text-xs font-semibold tracking-widest text-gold-700 uppercase">
+                Phone
+              </h6>
+              <div>{orgInfo.phone}</div>
+            </div>
+            <div className="mb-4">
+              <h6 className="mb-0.5 text-xs font-semibold tracking-widest text-gold-700 uppercase">
+                Email
+              </h6>
+              <div>{orgInfo.email}</div>
+            </div>
+            <div className="mb-4">
+              <h6 className="mb-0.5 text-xs font-semibold tracking-widest text-gold-700 uppercase">
+                Address
+              </h6>
+              <div>
+                {orgInfo.addressLines.map((line) => (
+                  <div key={line}>{line}</div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-4 flex gap-2">
+              {socials.map((s) => (
+                <span
+                  key={s.label}
+                  aria-label={s.label}
+                  className="flex size-9 items-center justify-center rounded-full border border-border font-heading text-sm"
+                >
+                  {s.initial}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-4 rounded-3xl bg-card p-6 shadow-md"
+          >
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="name">Your Name</Label>
+              <Input id="name" name="name" placeholder="Name" required />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="email">Your Email</Label>
+              <Input id="email" name="email" type="email" placeholder="Email" required />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="message">Your Message</Label>
+              <Textarea id="message" name="message" rows={5} placeholder="Message" required />
+            </div>
+            <Button type="submit" size="lg" className="w-full">
+              Send Message
+            </Button>
+          </form>
+        </div>
+      </section>
+
+      <section className="px-4 pb-14 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl shadow-md">
+          <iframe
+            title="SSA location map"
+            src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
+            className="h-75 w-full border-0"
+            loading="lazy"
+          />
+        </div>
+      </section>
     </>
   );
 }
