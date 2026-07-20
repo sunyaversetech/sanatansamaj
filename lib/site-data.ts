@@ -184,9 +184,36 @@ export type PastEvent = {
   title: string;
   location: string;
   desc: string;
-  photoCount: number;
   cover: string;
+  photos: string[];
 };
+
+const newyearPhotos = [
+  "/Newyear/newyear2026-1.jpg",
+  "/Newyear/newyear2026-2.jpg",
+  "/Newyear/newyear2026-3.jpg",
+  "/Newyear/newyear2026-5.jpeg",
+  "/Newyear/newyear2026-6.jpeg",
+  "/Newyear/newyear2026-7.jpeg",
+  "/Newyear/newyear2026-8.jpeg",
+  "/Newyear/newyear2026-9.jpeg",
+  "/Newyear/newyear2026-10.jpeg",
+  "/Newyear/newyear2026-11.jpeg",
+  "/Newyear/newyear2026-12.jpeg",
+  "/Newyear/newyear2026-13.jpeg",
+  "/Newyear/newyear2026-14.jpeg",
+  "/Newyear/newyear2026-15.jpeg",
+];
+
+const mahashivaratriPhotos = Array.from(
+  { length: 14 },
+  (_, i) => `/Mahashivaratri/mahashivaratri_${i + 1}.jpg`,
+);
+
+const janmashtamiPhotos = Array.from(
+  { length: 15 },
+  (_, i) => `/Krishnajanmastami/krishna_janmashtami_celebration_${i + 1}.jpg`,
+);
 
 export const pastEvents: PastEvent[] = [
   {
@@ -197,19 +224,19 @@ export const pastEvents: PastEvent[] = [
     title: "Nepali New Year 2083 Celebration",
     location: "Yarralumla, Canberra ACT",
     desc: "Our community welcomed the year 2083 with prayers, traditional food, music and dance at Yarralumla.",
-    photoCount: 12,
-    cover: "/dashain.webp",
+    cover: newyearPhotos[0],
+    photos: newyearPhotos,
   },
   {
-    slug: "gai-jatra-2025",
-    day: "10",
-    month: "AUG",
-    dateLabel: "August 10, 2025",
-    title: "Gai Jatra Community Gathering",
+    slug: "maha-shivaratri-2026",
+    day: "15",
+    month: "FEB",
+    dateLabel: "February 15, 2026",
+    title: "Maha Shivaratri Celebration",
     location: "Bonner Community Hall, ACT",
-    desc: "A joyful procession and community feast honouring the Gai Jatra tradition at Bonner Community Hall.",
-    photoCount: 12,
-    cover: "/teej.webp",
+    desc: "A night-long vigil of prayers, bhajans and puja dedicated to Lord Shiva, followed by a community feast.",
+    cover: mahashivaratriPhotos[0],
+    photos: mahashivaratriPhotos,
   },
   {
     slug: "janmashtami-2025",
@@ -219,8 +246,8 @@ export const pastEvents: PastEvent[] = [
     title: "Krishna Janmashtami Celebration",
     location: "Yarralumla, Canberra ACT",
     desc: "Devotional singing, a midnight puja and prasad marked the birth of Lord Krishna.",
-    photoCount: 12,
-    cover: "/krishna.webp",
+    cover: janmashtamiPhotos[0],
+    photos: janmashtamiPhotos,
   },
 ];
 

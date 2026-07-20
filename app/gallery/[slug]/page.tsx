@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getPastEvent, pastEvents } from "@/lib/site-data";
 
@@ -42,12 +41,18 @@ export default async function GalleryDetailPage({
       <div className="px-4 pb-14 sm:px-8">
         <p className="max-w-2xl text-foreground/80">{event.desc}</p>
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {Array.from({ length: event.photoCount }, (_, i) => (
+          {event.photos.map((photo) => (
             <div
-              key={i}
-              className="flex aspect-square items-center justify-center rounded-2xl bg-cocoa-100"
+              key={photo}
+              className="washed relative aspect-square overflow-hidden rounded-2xl"
             >
-              <ImageIcon className="size-8 text-cocoa-400" />
+              <Image
+                src={photo}
+                alt={event.title}
+                fill
+                className="object-cover"
+                sizes="(min-width: 640px) 25vw, 50vw"
+              />
             </div>
           ))}
         </div>
