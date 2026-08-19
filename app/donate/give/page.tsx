@@ -116,8 +116,7 @@ export default function DonateGivePage() {
                             selectedAmount === amt
                               ? "border-gold-400 bg-primary text-primary-foreground"
                               : "border-gold-400 text-gold-700 hover:bg-gold-100",
-                          )}
-                        >
+                          )}>
                           ${amt}
                         </button>
                       ))}
@@ -153,7 +152,11 @@ export default function DonateGivePage() {
                 )}
               />
 
-              <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />

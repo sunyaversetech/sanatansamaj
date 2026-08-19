@@ -3,6 +3,7 @@ import { CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getStripe } from "@/lib/stripe";
 import { membershipPlans, orgInfo } from "@/lib/site-data";
+import { getMembershipBySessionId } from "@/lib/records";
 
 export default async function MembershipApplySuccessPage({
   searchParams,
@@ -17,6 +18,7 @@ export default async function MembershipApplySuccessPage({
   let amount = 0;
   let currency = "aud";
   let email = "";
+  let membershipId = "";
 
   if (session_id) {
     try {
@@ -31,6 +33,17 @@ export default async function MembershipApplySuccessPage({
       currency = session.currency ?? "aud";
     } catch (err) {
       console.error("Failed to retrieve checkout session:", err);
+    }
+
+    if (paid) {
+      try {
+        // The webhook assigns the membership ID asynchronously — it usually
+        // lands before this page renders, but isn't guaranteed to.
+        const record = await getMembershipBySessionId(session_id);
+        membershipId = record?.membershipId ?? "";
+      } catch (err) {
+        console.error("Failed to look up membership record:", err);
+      }
     }
   }
 
@@ -69,6 +82,18 @@ export default async function MembershipApplySuccessPage({
           payment of <strong>${amount.toFixed(2)} {currency.toUpperCase()}</strong>{" "}
           has been received and your membership is now active.
         </p>
+        {membershipId ? (
+          <div className="rounded-2xl border border-gold-300 bg-gold-100 px-6 py-3">
+            <div className="text-xs text-foreground/55">Your Membership ID</div>
+            <div className="font-heading text-xl tracking-wide text-gold-800">
+              {membershipId}
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-foreground/55">
+            Your Membership ID will be included in your confirmation email.
+          </p>
+        )}
         {email && (
           <p className="text-sm text-foreground/55">
             A confirmation email has been sent to {email}.

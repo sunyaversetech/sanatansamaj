@@ -11,23 +11,42 @@ import {
   renderDonationOrgNotificationEmail,
   renderDonationThankYouEmail,
 } from "@/lib/email-templates";
-import { saveMembershipApplication, saveDonation } from "@/lib/records";
+import {
+  saveMembershipApplication,
+  saveDonation,
+  getNextMembershipId,
+  getMembershipBySessionId,
+} from "@/lib/records";
 
 export const runtime = "nodejs";
 
 async function sendMembershipEmails(session: Stripe.Checkout.Session) {
+  // Guards against a retried/duplicate webhook delivery re-processing the
+  // same payment — that would burn a second sequential membership ID and
+  // send duplicate emails for one real membership.
+  const existing = await getMembershipBySessionId(session.id).catch((err) => {
+    console.error("Stripe webhook: idempotency lookup failed, proceeding anyway", err);
+    return null;
+  });
+  if (existing) {
+    console.log(
+      `Stripe webhook: session ${session.id} already processed as ${existing.membershipId}, skipping`,
+    );
+    return;
+  }
+
   const metadata = session.metadata ?? {};
   const parsed = membershipApplicationSchema.safeParse({
     fullName: metadata.fullName,
     telephone: metadata.telephone,
     email: metadata.email,
     planTier: metadata.planTier,
-    spouseName: metadata.spouseName || undefined,
-    spouseTelephone: metadata.spouseTelephone || undefined,
-    spouseEmail: metadata.spouseEmail || undefined,
-    familyMember1: metadata.familyMember1 || undefined,
-    familyMember2: metadata.familyMember2 || undefined,
-    familyMember3: metadata.familyMember3 || undefined,
+    familyMember1Name: metadata.familyMember1Name || undefined,
+    familyMember1Relation: metadata.familyMember1Relation || undefined,
+    familyMember2Name: metadata.familyMember2Name || undefined,
+    familyMember2Relation: metadata.familyMember2Relation || undefined,
+    familyMember3Name: metadata.familyMember3Name || undefined,
+    familyMember3Relation: metadata.familyMember3Relation || undefined,
     address: metadata.address,
     specialInterests: metadata.specialInterests || undefined,
     signOffDate: metadata.signOffDate,
@@ -41,8 +60,24 @@ async function sendMembershipEmails(session: Stripe.Checkout.Session) {
     return;
   }
 
+  // ID assignment needs Mongo, but a Mongo outage must never silently
+  // swallow a real member's confirmation emails. Fall back to a clearly
+  // non-sequential placeholder so it's obvious this needs manual
+  // reconciliation, instead of aborting the whole function.
+  let membershipId: string;
+  try {
+    membershipId = await getNextMembershipId(parsed.data.planTier);
+  } catch (err) {
+    console.error(
+      "Stripe webhook: failed to assign membership ID, using fallback",
+      err,
+    );
+    membershipId = `PENDING-${session.id.slice(-8).toUpperCase()}`;
+  }
+
   const application = {
     ...parsed.data,
+    membershipId,
     amountPaid: (session.amount_total ?? 0) / 100,
     currency: session.currency ?? "aud",
   };

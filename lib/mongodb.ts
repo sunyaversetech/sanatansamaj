@@ -28,9 +28,28 @@ function createClientPromise(): Promise<MongoClient> {
 }
 
 let clientPromise: Promise<MongoClient> | undefined;
+let indexesReady: Promise<void> | undefined;
+
+async function ensureIndexes(db: Db) {
+  // Prevents a retried/duplicate Stripe webhook delivery from creating a
+  // second membership record (and burning a second sequential ID) for the
+  // same checkout session.
+  await db
+    .collection("membership_applications")
+    .createIndex({ stripeSessionId: 1 }, { unique: true });
+}
 
 export async function getDb(): Promise<Db> {
   if (!clientPromise) clientPromise = createClientPromise();
   const client = await clientPromise;
-  return client.db(process.env.MONGODB_DB || "sanatansamaj");
+  const db = client.db(process.env.MONGODB_DB || "sanatansamaj");
+
+  if (!indexesReady) {
+    indexesReady = ensureIndexes(db).catch((err) => {
+      console.error("MongoDB: failed to ensure indexes", err);
+    });
+  }
+  await indexesReady;
+
+  return db;
 }

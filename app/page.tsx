@@ -14,9 +14,14 @@ export default function Home() {
           {features.map((f) => (
             <div
               key={f.title}
-              className="flex flex-col gap-2 rounded-2xl bg-card p-6 shadow-sm"
-            >
-              <div className="mb-1 size-11 rounded-full bg-cocoa-200" />
+              className="flex flex-col gap-2 rounded-2xl bg-card p-6 shadow-sm">
+              <div className="mb-1 size-11 rounded-full ">
+                <img
+                  src={f.icon}
+                  alt={f.title}
+                  className="rounded-full w-10 h-10 object-cover"
+                />
+              </div>
               <h3 className="font-heading text-lg">{f.title}</h3>
               <p className="text-sm text-foreground/75">{f.desc}</p>
             </div>
@@ -35,8 +40,7 @@ export default function Home() {
             {upcomingFestivals.map((ev, i) => (
               <div
                 key={ev.name}
-                className={`flex items-center gap-4 p-4 ${i !== upcomingFestivals.length - 1 ? "border-b border-border" : ""}`}
-              >
+                className={`flex items-center gap-4 p-4 ${i !== upcomingFestivals.length - 1 ? "border-b border-border" : ""}`}>
                 <div className="w-32 shrink-0 font-heading text-gold-700 sm:w-40">
                   {ev.date}
                 </div>
@@ -58,8 +62,8 @@ export default function Home() {
         <div className="mx-auto max-w-6xl">
           <h2 className="text-background">Ready to Join Us?</h2>
           <p className="max-w-lg text-gold-100">
-            Become part of our growing community and experience the richness
-            of Sanatan Dharma with us.
+            Become part of our growing community and experience the richness of
+            Sanatan Dharma with us.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button asChild size="lg">
@@ -69,8 +73,7 @@ export default function Home() {
               asChild
               size="lg"
               variant="outline"
-              className="border-gold-300 text-background hover:bg-background/10"
-            >
+              className="border-gold-300 text-background hover:bg-background/10">
               <Link href="/events">View Upcoming Events</Link>
             </Button>
           </div>

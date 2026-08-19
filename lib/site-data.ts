@@ -56,58 +56,43 @@ export const heroSlides = [
 export const features = [
   {
     title: "Spiritual Events",
+    icon: "/Krishnajanmastami/krishna_janmashtami_celebration_2.jpg",
     desc: "Experience sacred ceremonies and spiritual gatherings that connect us to our roots.",
   },
   {
     title: "Community Support",
+    icon: "/Krishnajanmastami/krishna_janmashtami_celebration_15.jpg",
     desc: "Join a loving community dedicated to personal growth and mutual support.",
   },
   {
     title: "Cultural Programs",
+    icon: "/Newyear/newyear2026-7.jpeg",
     desc: "Celebrate and preserve the rich traditions of Hindu culture through engaging programs.",
   },
 ];
 
 export const yearEvents = [
   {
-    name: "Maghe Sankranti",
-    date: "Jan 14, 2026",
-    desc: "Marks the start of longer days, celebrated with warm foods and holy dips.",
-  },
-  {
     name: "Maha Shivaratri",
     date: "Feb 15, 2026",
     desc: "Night-long vigil and prayers dedicated to Lord Shiva.",
   },
-  {
-    name: "Holi (Fagu Purnima)",
-    date: "Mar 3, 2026",
-    desc: "Festival of colours celebrating the triumph of good over evil.",
-  },
+
   {
     name: "Nepali New Year 2083",
     date: "Apr 14, 2026",
     desc: "Community gathering to welcome the new year.",
   },
-  {
-    name: "Buddha Jayanti",
-    date: "May 1, 2026",
-    desc: "Celebrating the birth of Lord Buddha.",
-  },
-  {
-    name: "Ganga Dashahara",
-    date: "Jun 19, 2026",
-    desc: "Honouring the sacred descent of the river Ganga.",
-  },
-  {
-    name: "Guru Purnima",
-    date: "Jul 18, 2026",
-    desc: "A day to honour teachers and spiritual guides.",
-  },
+
   {
     name: "Teej",
     date: "Aug 15, 2026",
     desc: "Festival dedicated to Goddess Parvati.",
+  },
+  {
+    name: "Janai purnima",
+    date: "Aug 28, 2026",
+    desc: "Festival of changing holy Thread(Janai)",
   },
   {
     name: "Shree Krishna Janmashtami",
@@ -118,16 +103,6 @@ export const yearEvents = [
     name: "Dashain",
     date: "Oct 11–20, 2026",
     desc: "The biggest and longest Hindu festival of the year.",
-  },
-  {
-    name: "Tihar",
-    date: "Nov 8–12, 2026",
-    desc: "Festival of lights honouring Goddess Lakshmi and siblings.",
-  },
-  {
-    name: "Vivaha Panchami",
-    date: "Dec 13, 2026",
-    desc: "Commemorating the divine marriage of Ram and Sita.",
   },
 ];
 
@@ -153,7 +128,16 @@ export const objectives = [
   },
 ];
 
-export const team = ["President", "Secretary", "Treasurer", "Cultural Coordinator"];
+export const team = [
+  "President: Santosh Malla",
+  "Treasurer: Prakash Pokhrel",
+  "Public Relation Officer: Hemant Bandari",
+  "Cultural Coordinator: Basu Dhakal",
+  "Executive Member: Bhim Chhetri",
+  "Executive Member: Dibas Paudel",
+  "Executive Member: Pramod Acharya",
+  "Executive Member: Bishnu Bhandari",
+];
 
 export const benefits = [
   "Access to spiritual events, pujas and festival celebrations",
@@ -163,9 +147,27 @@ export const benefits = [
 ];
 
 export const membershipPlans = [
-  { key: "single", label: "Annual Member – Single", price: "$15 pa", amount: 15 },
-  { key: "family", label: "Annual Member – Family", price: "$25 pa", amount: 25 },
-  { key: "life", label: "Life Member", price: "$250 one-off", amount: 250 },
+  {
+    key: "single",
+    label: "Annual Member – Single",
+    price: "$5 pa",
+    amount: 5,
+    idPrefix: "AMS",
+  },
+  {
+    key: "family",
+    label: "Annual Member – Family",
+    price: "$10 pa",
+    amount: 10,
+    idPrefix: "AMF",
+  },
+  {
+    key: "life",
+    label: "Life Member",
+    price: "$500 one-off",
+    amount: 500,
+    idPrefix: "LF",
+  },
 ] as const;
 
 export const donationAmounts = [25, 50, 100, 250];

@@ -29,7 +29,9 @@ export function HeroCarousel() {
   }, [restartTimer]);
 
   const goTo = (index: number) => {
-    setActive(((index % heroSlides.length) + heroSlides.length) % heroSlides.length);
+    setActive(
+      ((index % heroSlides.length) + heroSlides.length) % heroSlides.length,
+    );
     restartTimer();
   };
 
@@ -39,8 +41,10 @@ export function HeroCarousel() {
         <div
           key={slide.source}
           className="absolute inset-0 transition-opacity duration-700 ease-out"
-          style={{ opacity: i === active ? 1 : 0, pointerEvents: i === active ? "auto" : "none" }}
-        >
+          style={{
+            opacity: i === active ? 1 : 0,
+            pointerEvents: i === active ? "auto" : "none",
+          }}>
           <Image
             src={slide.image}
             alt={slide.source}
@@ -50,10 +54,7 @@ export function HeroCarousel() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-cocoa-900/80 via-cocoa-900/35 to-cocoa-900/15" />
           <div className="absolute inset-x-0 bottom-0 flex flex-col items-start gap-3 px-6 pt-8 pb-10 sm:px-12 sm:pb-14">
-            <span className="rounded-full bg-cocoa-500/40 px-3 py-1 text-xs tracking-wide text-cocoa-100 backdrop-blur-sm">
-              SANATAN DHARMA · AUSTRALIA
-            </span>
-            <h1 className="max-w-3xl text-3xl text-background sm:text-4xl">
+            <h1 className="max-w-3xl hidden md:flex text-3xl text-background md:text-4xl">
               {slide.sanskrit}
             </h1>
             <p className="max-w-xl text-lg text-gold-100">
@@ -68,9 +69,8 @@ export function HeroCarousel() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="border-gold-300 text-background hover:bg-background/10"
-              >
-                <Link href="/about">Learn More</Link>
+                className="border-gold-300 text-background hover:bg-background/10">
+                <Link href="/donate/give">Donate Now</Link>
               </Button>
             </div>
           </div>
@@ -80,15 +80,13 @@ export function HeroCarousel() {
       <button
         aria-label="Previous slide"
         onClick={() => goTo(active - 1)}
-        className="absolute top-1/2 left-4 z-10 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-background/85 text-foreground hover:bg-background"
-      >
+        className="absolute top-1/2 left-4 z-10 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-background/85 text-foreground hover:bg-background">
         <ChevronLeft className="size-5" />
       </button>
       <button
         aria-label="Next slide"
         onClick={() => goTo(active + 1)}
-        className="absolute top-1/2 right-4 z-10 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-background/85 text-foreground hover:bg-background"
-      >
+        className="absolute top-1/2 right-4 z-10 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-background/85 text-foreground hover:bg-background">
         <ChevronRight className="size-5" />
       </button>
 

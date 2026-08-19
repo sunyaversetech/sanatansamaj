@@ -8,7 +8,10 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
 
   const parsed = membershipApplicationSchema.safeParse(body);
@@ -22,7 +25,10 @@ export async function POST(req: NextRequest) {
 
   const plan = membershipPlans.find((p) => p.key === data.planTier);
   if (!plan) {
-    return NextResponse.json({ error: "Unknown membership plan" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Unknown membership plan" },
+      { status: 400 },
+    );
   }
 
   const origin = req.nextUrl.origin;
@@ -51,12 +57,12 @@ export async function POST(req: NextRequest) {
         telephone: data.telephone,
         email: data.email,
         planTier: data.planTier,
-        spouseName: data.spouseName ?? "",
-        spouseTelephone: data.spouseTelephone ?? "",
-        spouseEmail: data.spouseEmail ?? "",
-        familyMember1: data.familyMember1 ?? "",
-        familyMember2: data.familyMember2 ?? "",
-        familyMember3: data.familyMember3 ?? "",
+        familyMember1Name: data.familyMember1Name ?? "",
+        familyMember1Relation: data.familyMember1Relation ?? "",
+        familyMember2Name: data.familyMember2Name ?? "",
+        familyMember2Relation: data.familyMember2Relation ?? "",
+        familyMember3Name: data.familyMember3Name ?? "",
+        familyMember3Relation: data.familyMember3Relation ?? "",
         address: data.address,
         specialInterests: data.specialInterests ?? "",
         signOffDate: data.signOffDate,
@@ -66,7 +72,10 @@ export async function POST(req: NextRequest) {
     });
 
     if (!session.url) {
-      return NextResponse.json({ error: "Could not start checkout" }, { status: 502 });
+      return NextResponse.json(
+        { error: "Could not start checkout" },
+        { status: 502 },
+      );
     }
 
     return NextResponse.json({ url: session.url });

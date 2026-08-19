@@ -18,7 +18,7 @@ export default function AboutPage() {
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 md:grid-cols-2">
           <div className="washed relative h-105 overflow-hidden rounded-3xl shadow-md">
             <Image
-              src="/dashain.webp"
+              src="https://images.pexels.com/photos/38087510/pexels-photo-38087510.jpeg"
               alt="Community gathering"
               fill
               className="object-cover"
@@ -44,8 +44,7 @@ export default function AboutPage() {
             {objectives.map((obj) => (
               <div
                 key={obj.n}
-                className="flex items-start gap-3 rounded-2xl bg-card p-5 shadow-sm"
-              >
+                className="flex items-start gap-3 rounded-2xl bg-card p-5 shadow-sm">
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary font-heading text-[15px] text-primary-foreground">
                   {obj.n}
                 </div>
@@ -59,9 +58,11 @@ export default function AboutPage() {
       <section className="px-4 pb-14 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <h2 className="mb-6">Our Committee</h2>
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4 ">
             {team.map((role) => (
-              <div key={role}>
+              <div
+                key={role}
+                className="flex flex-col items-center gap-2 rounded-2xl bg-card p-5 shadow-sm">
                 <div className="mb-3 flex size-30 items-center justify-center rounded-full bg-cocoa-200">
                   <Users className="size-10 text-cocoa-600" />
                 </div>

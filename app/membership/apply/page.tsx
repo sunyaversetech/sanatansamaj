@@ -22,6 +22,24 @@ import {
   type MembershipApplication,
 } from "@/lib/membership-schema";
 
+const familyMemberFields = [
+  {
+    name: "familyMember1Name",
+    relation: "familyMember1Relation",
+    label: "Family Member 1",
+  },
+  {
+    name: "familyMember2Name",
+    relation: "familyMember2Relation",
+    label: "Family Member 2 (optional)",
+  },
+  {
+    name: "familyMember3Name",
+    relation: "familyMember3Relation",
+    label: "Family Member 3 (optional)",
+  },
+] as const;
+
 export default function MembershipApplyPage() {
   const today = new Date().toISOString().slice(0, 10);
 
@@ -32,12 +50,12 @@ export default function MembershipApplyPage() {
       telephone: "",
       email: "",
       planTier: "single",
-      spouseName: "",
-      spouseTelephone: "",
-      spouseEmail: "",
-      familyMember1: "",
-      familyMember2: "",
-      familyMember3: "",
+      familyMember1Name: "",
+      familyMember1Relation: "",
+      familyMember2Name: "",
+      familyMember2Relation: "",
+      familyMember3Name: "",
+      familyMember3Relation: "",
       address: "",
       specialInterests: "",
       signOffDate: today,
@@ -83,7 +101,8 @@ export default function MembershipApplyPage() {
             {orgInfo.mantra}
           </div>
           <div className="mt-1 text-xs text-foreground/55">
-            Membership Application · Association Number {orgInfo.associationNumber}
+            Membership Application · Association Number{" "}
+            {orgInfo.associationNumber}
           </div>
         </div>
       </div>
@@ -92,7 +111,6 @@ export default function MembershipApplyPage() {
         <div className="mx-auto max-w-3xl">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* 1. Applicant Details */}
               <div className="space-y-4 rounded-2xl bg-card p-5 shadow-sm">
                 <h3 className="text-cocoa-700">1. Applicant Details</h3>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -150,13 +168,11 @@ export default function MembershipApplyPage() {
                         <RadioGroup
                           onValueChange={field.onChange}
                           value={field.value}
-                          className="gap-3"
-                        >
+                          className="gap-3">
                           {membershipPlans.map((plan) => (
                             <label
                               key={plan.key}
-                              className="flex cursor-pointer items-center gap-3"
-                            >
+                              className="flex cursor-pointer items-center gap-3">
                               <RadioGroupItem value={plan.key} />
                               <span>
                                 {plan.label} ({plan.price})
@@ -173,112 +189,52 @@ export default function MembershipApplyPage() {
 
               {isFamilyPlan && (
                 <div className="space-y-4 rounded-2xl bg-card p-5 shadow-sm">
-                  <h3 className="text-cocoa-700">3. Spouse Details</h3>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="spouseName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Spouse Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="spouseTelephone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Spouse Telephone</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="spouseEmail"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Spouse Email</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <h3 className="text-cocoa-700">3. Family Members</h3>
+                  {familyMemberFields.map((f) => (
+                    <div
+                      key={f.name}
+                      className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name={f.name}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{f.label} — Name</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="e.g. Priya Sharma"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={f.relation}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{f.label} — Relationship</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="e.g. Spouse, Son, Daughter"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  ))}
                 </div>
               )}
 
               <div className="space-y-4 rounded-2xl bg-card p-5 shadow-sm">
                 <h3 className="text-cocoa-700">
-                  {isFamilyPlan ? "4. Family & Location Profile" : "3. Location Profile"}
+                  {isFamilyPlan ? "4. Location Profile" : "3. Location Profile"}
                 </h3>
-                {isFamilyPlan && (
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="familyMember1"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Family Member 1 — Name &amp; Relationship
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g. Aarav Sharma, Son"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="familyMember2"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Family Member 2 — Name &amp; Relationship
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g. Priya Sharma, Daughter"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
-                {isFamilyPlan && (
-                  <FormField
-                    control={form.control}
-                    name="familyMember3"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Family Member 3 — Name &amp; Relationship
-                        </FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g. Rina Sharma, Mother" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
                 <FormField
                   control={form.control}
                   name="address"

@@ -6,23 +6,32 @@ export const membershipApplicationSchema = z
     telephone: z.string().min(6, "A valid telephone number is required"),
     email: z.string().email("Please enter a valid email address"),
     planTier: z.enum(["single", "family", "life"]),
-    spouseName: z.string().optional(),
-    spouseTelephone: z.string().optional(),
-    spouseEmail: z.string().optional(),
-    familyMember1: z.string().optional(),
-    familyMember2: z.string().optional(),
-    familyMember3: z.string().optional(),
+    familyMember1Name: z.string().optional(),
+    familyMember1Relation: z.string().optional(),
+    familyMember2Name: z.string().optional(),
+    familyMember2Relation: z.string().optional(),
+    familyMember3Name: z.string().optional(),
+    familyMember3Relation: z.string().optional(),
     address: z.string().min(5, "Residential address is required"),
     specialInterests: z.string().optional(),
     signOffDate: z.string().min(1, "Please provide the sign-off date"),
   })
   .superRefine((data, ctx) => {
-    if (data.planTier === "family" && !data.spouseName) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Spouse name is required for a family membership",
-        path: ["spouseName"],
-      });
+    if (data.planTier === "family") {
+      if (!data.familyMember1Name) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "At least one family member's name is required",
+          path: ["familyMember1Name"],
+        });
+      }
+      if (!data.familyMember1Relation) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "At least one family member's relationship is required",
+          path: ["familyMember1Relation"],
+        });
+      }
     }
   });
 

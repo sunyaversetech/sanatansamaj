@@ -8,6 +8,7 @@ const COLORS = {
   text: "#201e1d",
   muted: "#7a6b52",
   accent: "#c9962c",
+  accentTint: "#fdf3df",
   accentDark: "#7d5817",
   cocoa: "#6b4226",
   ink: "#1b1712",
@@ -29,6 +30,18 @@ function row(label: string, value?: string | null) {
       <td style="padding:6px 0;font-family:${BODY_FONT};font-size:13px;color:${COLORS.muted};width:190px;vertical-align:top;">${label}</td>
       <td style="padding:6px 0;font-family:${BODY_FONT};font-size:14px;color:${COLORS.text};vertical-align:top;">${value}</td>
     </tr>`;
+}
+
+function familyMemberRowsHtml(app: MembershipApplication) {
+  const slots = [
+    { name: app.familyMember1Name, relation: app.familyMember1Relation, label: "Family Member 1" },
+    { name: app.familyMember2Name, relation: app.familyMember2Relation, label: "Family Member 2" },
+    { name: app.familyMember3Name, relation: app.familyMember3Relation, label: "Family Member 3" },
+  ];
+  return slots
+    .filter((s) => s.name)
+    .map((s) => row(s.label, `${s.name}${s.relation ? ` (${s.relation})` : ""}`))
+    .join("");
 }
 
 function shell(opts: { preheader: string; body: string }) {
@@ -79,10 +92,15 @@ function shell(opts: { preheader: string; body: string }) {
 }
 
 export function renderOrgNotificationEmail(
-  app: MembershipApplication & { amountPaid: number; currency: string },
+  app: MembershipApplication & {
+    membershipId: string;
+    amountPaid: number;
+    currency: string;
+  },
 ) {
   const plan = planLabel(app.planTier);
   const amount = `$${app.amountPaid.toFixed(2)} ${app.currency.toUpperCase()}`;
+  const familyMemberRows = familyMemberRowsHtml(app);
 
   const body = `
     <div style="font-family:${HEADING_FONT};font-size:20px;color:${COLORS.text};margin-bottom:4px;">
@@ -91,6 +109,10 @@ export function renderOrgNotificationEmail(
     <div style="font-family:${BODY_FONT};font-size:13px;color:${COLORS.muted};margin-bottom:20px;">
       Payment received via Stripe &mdash; ${amount}
     </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.accentTint};border:1px solid ${COLORS.accent};border-radius:16px;padding:14px 18px;margin-bottom:16px;">
+      ${row("Membership ID", `<strong>${app.membershipId}</strong>`)}
+    </table>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.bg};border-radius:16px;padding:16px 18px;margin-bottom:16px;">
       ${row("Applicant", app.fullName)}
@@ -102,14 +124,9 @@ export function renderOrgNotificationEmail(
     </table>
 
     ${
-      app.planTier === "family"
+      app.planTier === "family" && familyMemberRows
         ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.bg};border-radius:16px;padding:16px 18px;margin-bottom:16px;">
-      ${row("Spouse Name", app.spouseName)}
-      ${row("Spouse Phone", app.spouseTelephone)}
-      ${row("Spouse Email", app.spouseEmail)}
-      ${row("Family Member 1", app.familyMember1)}
-      ${row("Family Member 2", app.familyMember2)}
-      ${row("Family Member 3", app.familyMember3)}
+      ${familyMemberRows}
     </table>`
         : ""
     }
@@ -121,16 +138,20 @@ export function renderOrgNotificationEmail(
   `;
 
   return {
-    subject: `New Membership Application — ${app.fullName} (${plan})`,
+    subject: `New Membership Application — ${app.fullName} (${app.membershipId})`,
     html: shell({
-      preheader: `${app.fullName} just paid ${amount} for ${plan} membership.`,
+      preheader: `${app.fullName} just paid ${amount} for ${plan} membership. ID: ${app.membershipId}.`,
       body,
     }),
   };
 }
 
 export function renderWelcomeEmail(
-  app: MembershipApplication & { amountPaid: number; currency: string },
+  app: MembershipApplication & {
+    membershipId: string;
+    amountPaid: number;
+    currency: string;
+  },
 ) {
   const plan = planLabel(app.planTier);
   const amount = `$${app.amountPaid.toFixed(2)} ${app.currency.toUpperCase()}`;
@@ -148,6 +169,11 @@ export function renderWelcomeEmail(
       you as a <strong>${plan}</strong> member of our community. Your payment of
       <strong>${amount}</strong> has been received and your membership is now active.
     </p>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.accentTint};border:1px solid ${COLORS.accent};border-radius:16px;padding:16px 18px;margin-bottom:16px;text-align:center;">
+      <tr><td style="font-family:${BODY_FONT};font-size:12px;color:${COLORS.muted};padding-bottom:4px;">Your Membership ID</td></tr>
+      <tr><td style="font-family:${HEADING_FONT};font-size:22px;color:${COLORS.accentDark};letter-spacing:0.04em;">${app.membershipId}</td></tr>
+    </table>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.bg};border-radius:16px;padding:16px 18px;margin-bottom:20px;">
       ${row("Membership Plan", plan)}

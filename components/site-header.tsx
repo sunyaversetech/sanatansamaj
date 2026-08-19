@@ -42,22 +42,20 @@ export function SiteHeader() {
               className={cn(
                 "font-heading text-[15px] transition-colors hover:text-primary",
                 isActive(item.href) ? "text-primary" : "text-foreground",
-              )}
-            >
+              )}>
               {item.label}
             </Link>
           ))}
         </nav>
 
         <Button asChild className="hidden md:inline-flex">
-          <Link href="/membership/apply">Become a Member</Link>
+          <Link href="/membership/apply">Book a Pujari</Link>
         </Button>
 
         <button
           onClick={() => setMobileOpen((v) => !v)}
           className="rounded-full p-2 text-foreground hover:bg-foreground/5 md:hidden"
-          aria-label="Toggle menu"
-        >
+          aria-label="Toggle menu">
           {mobileOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
@@ -75,13 +73,14 @@ export function SiteHeader() {
                   isActive(item.href)
                     ? "bg-primary/10 text-primary"
                     : "text-foreground hover:bg-foreground/5",
-                )}
-              >
+                )}>
                 {item.label}
               </Link>
             ))}
             <Button asChild className="mt-2">
-              <Link href="/membership/apply" onClick={() => setMobileOpen(false)}>
+              <Link
+                href="/membership/apply"
+                onClick={() => setMobileOpen(false)}>
                 Become a Member
               </Link>
             </Button>
