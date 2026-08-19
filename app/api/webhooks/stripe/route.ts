@@ -40,6 +40,7 @@ async function sendMembershipEmails(session: Stripe.Checkout.Session) {
     fullName: metadata.fullName,
     telephone: metadata.telephone,
     email: metadata.email,
+    occupation: metadata.occupation || undefined,
     planTier: metadata.planTier,
     familyMember1Name: metadata.familyMember1Name || undefined,
     familyMember1Relation: metadata.familyMember1Relation || undefined,

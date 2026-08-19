@@ -118,6 +118,7 @@ export function renderOrgNotificationEmail(
       ${row("Applicant", app.fullName)}
       ${row("Phone", app.telephone)}
       ${row("Email", app.email)}
+      ${row("Occupation", app.occupation)}
       ${row("Membership Plan", plan)}
       ${row("Amount Paid", amount)}
       ${row("Sign-Off Date", app.signOffDate)}

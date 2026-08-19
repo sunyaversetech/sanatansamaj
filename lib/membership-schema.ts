@@ -5,6 +5,7 @@ export const membershipApplicationSchema = z
     fullName: z.string().min(2, "Full name is required"),
     telephone: z.string().min(6, "A valid telephone number is required"),
     email: z.string().email("Please enter a valid email address"),
+    occupation: z.string().optional(),
     planTier: z.enum(["single", "family", "life"]),
     familyMember1Name: z.string().optional(),
     familyMember1Relation: z.string().optional(),

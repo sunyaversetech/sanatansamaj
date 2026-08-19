@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
         fullName: data.fullName,
         telephone: data.telephone,
         email: data.email,
+        occupation: data.occupation ?? "",
         planTier: data.planTier,
         familyMember1Name: data.familyMember1Name ?? "",
         familyMember1Relation: data.familyMember1Relation ?? "",
