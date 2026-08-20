@@ -1,7 +1,10 @@
 "use client";
 
 import { loadStripe } from "@stripe/stripe-js";
-import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
+import {
+  EmbeddedCheckout,
+  EmbeddedCheckoutProvider,
+} from "@stripe/react-stripe-js";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const stripePromise = loadStripe(
@@ -21,15 +24,13 @@ export function CheckoutDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="max-h-[90vh] w-full overflow-y-auto p-0 sm:max-w-2xl"
-        onInteractOutside={(e) => e.preventDefault()}
-      >
+        onInteractOutside={(e) => e.preventDefault()}>
         <DialogTitle className="sr-only">Secure Payment</DialogTitle>
         {clientSecret && (
           <EmbeddedCheckoutProvider
             key={clientSecret}
             stripe={stripePromise}
-            options={{ clientSecret }}
-          >
+            options={{ clientSecret }}>
             <EmbeddedCheckout />
           </EmbeddedCheckoutProvider>
         )}
