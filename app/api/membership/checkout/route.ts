@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      ui_mode: "embedded_page",
       customer_email: data.email,
       line_items: [
         {
@@ -68,18 +69,17 @@ export async function POST(req: NextRequest) {
         specialInterests: data.specialInterests ?? "",
         signOffDate: data.signOffDate,
       },
-      success_url: `${origin}/membership/apply/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/membership/apply`,
+      return_url: `${origin}/membership/apply/success?session_id={CHECKOUT_SESSION_ID}`,
     });
 
-    if (!session.url) {
+    if (!session.client_secret) {
       return NextResponse.json(
         { error: "Could not start checkout" },
         { status: 502 },
       );
     }
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ clientSecret: session.client_secret });
   } catch (err) {
     console.error("Stripe checkout session creation failed:", err);
     return NextResponse.json(

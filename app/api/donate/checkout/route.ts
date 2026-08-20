@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      ui_mode: "embedded_page",
       customer_email: data.email,
       line_items: [
         {
@@ -51,18 +52,17 @@ export async function POST(req: NextRequest) {
         amount: String(data.amount),
         isAnonymous: String(data.isAnonymous),
       },
-      success_url: `${origin}/donate/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/donate/give`,
+      return_url: `${origin}/donate/success?session_id={CHECKOUT_SESSION_ID}`,
     });
 
-    if (!session.url) {
+    if (!session.client_secret) {
       return NextResponse.json(
         { error: "Could not start checkout" },
         { status: 502 },
       );
     }
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ clientSecret: session.client_secret });
   } catch (err) {
     console.error("Stripe donation checkout session creation failed:", err);
     return NextResponse.json(

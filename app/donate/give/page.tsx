@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,6 +17,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { CheckoutDialog } from "@/components/checkout-dialog";
 import { cn } from "@/lib/utils";
 import { donationAmounts } from "@/lib/site-data";
 import { donationSchema, type Donation } from "@/lib/donation-schema";
@@ -34,6 +36,9 @@ export default function DonateGivePage() {
   const selectedAmount = form.watch("amount");
   const isSubmitting = form.formState.isSubmitting;
 
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+
   async function onSubmit(values: Donation) {
     try {
       const res = await fetch("/api/donate/checkout", {
@@ -43,11 +48,12 @@ export default function DonateGivePage() {
       });
       const data = await res.json();
 
-      if (!res.ok || !data.url) {
+      if (!res.ok || !data.clientSecret) {
         throw new Error(data.error || "Could not start checkout");
       }
 
-      window.location.href = data.url;
+      setClientSecret(data.clientSecret);
+      setCheckoutOpen(true);
     } catch (err) {
       console.error("Checkout error:", err);
       toast.error("Something went wrong", {
@@ -160,7 +166,7 @@ export default function DonateGivePage() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />
-                    Redirecting to payment…
+                    Opening secure checkout…
                   </>
                 ) : (
                   "Donate Now"
@@ -174,6 +180,12 @@ export default function DonateGivePage() {
           </Form>
         </div>
       </section>
+
+      <CheckoutDialog
+        open={checkoutOpen}
+        onOpenChange={setCheckoutOpen}
+        clientSecret={clientSecret}
+      />
     </>
   );
 }
