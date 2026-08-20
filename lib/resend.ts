@@ -19,7 +19,7 @@ export function getResend() {
 // Verified sending address. Until a custom domain is verified in Resend,
 // this must stay "onboarding@resend.dev" (Resend's shared sandbox sender).
 export const EMAIL_FROM =
-  process.env.RESEND_FROM_EMAIL || "Sanatan Samaj Australia <onboarding@resend.dev>";
+  process.env.RESEND_FROM_EMAIL || "noreply@sanatansamajaustralia.org";
 
 // The Resend SDK resolves (doesn't reject) even when the API rejects the
 // request — it returns { data, error }. Wrapping it so failures actually

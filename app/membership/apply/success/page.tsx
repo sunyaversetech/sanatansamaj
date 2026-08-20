@@ -40,7 +40,13 @@ export default async function MembershipApplySuccessPage({
         // The webhook assigns the membership ID asynchronously — it usually
         // lands before this page renders, but isn't guaranteed to.
         const record = await getMembershipBySessionId(session_id);
-        membershipId = record?.membershipId ?? "";
+        // A "PENDING-..." id means assignment failed (e.g. the database was
+        // briefly unreachable) — treat it the same as "not ready yet" rather
+        // than showing the raw placeholder to the member.
+        membershipId =
+          record?.membershipId && !record.membershipId.startsWith("PENDING-")
+            ? record.membershipId
+            : "";
       } catch (err) {
         console.error("Failed to look up membership record:", err);
       }

@@ -32,6 +32,60 @@ function row(label: string, value?: string | null) {
     </tr>`;
 }
 
+function isPendingId(membershipId: string) {
+  return membershipId.startsWith("PENDING-");
+}
+
+// A small "membership card" style block, reused in both the org notification
+// and the applicant welcome email. Falls back to a softer, non-alarming
+// message when ID assignment failed (see getNextMembershipId's fallback) —
+// showing a raw "PENDING-XXXXXXXX" string to a member would look broken.
+function membershipIdCardHtml(opts: {
+  membershipId: string;
+  memberName: string;
+  planLabel: string;
+  audience: "org" | "member";
+}) {
+  const pending = isPendingId(opts.membershipId);
+  const borderColor = pending ? "#b3432f" : COLORS.accent;
+  const stripBg = pending ? "#b3432f" : COLORS.accent;
+  const stripText = pending
+    ? `${opts.audience === "org" ? "Needs manual ID assignment" : "Membership ID pending"}`
+    : "Sanatan Samaj Australia &middot; Membership Card";
+
+  const idLine = pending
+    ? opts.audience === "org"
+      ? `<span style="color:#b3432f;">${opts.membershipId}</span> &mdash; please assign a permanent ID and update our records`
+      : "We&rsquo;re finalising your membership ID and will follow up by email shortly."
+    : `<strong>${opts.membershipId}</strong>`;
+
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${COLORS.accentTint};border:2px solid ${borderColor};border-radius:16px;margin-bottom:16px;">
+      <tr>
+        <td class="ssa-dark-bg" bgcolor="${stripBg}" style="background-color:${stripBg};border-radius:13px 13px 0 0;padding:8px 18px;text-align:center;">
+          <div class="ssa-dark-text" style="font-family:${HEADING_FONT};font-size:11px;letter-spacing:0.12em;color:${COLORS.bg};text-transform:uppercase;">
+            ${stripText}
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:16px 18px;text-align:center;">
+          <div style="font-family:${BODY_FONT};font-size:11px;color:${COLORS.muted};margin-bottom:4px;">
+            ${pending ? "" : "Membership ID"}
+          </div>
+          <div style="font-family:${pending ? BODY_FONT : HEADING_FONT};font-size:${pending ? "14px" : "24px"};color:${COLORS.accentDark};letter-spacing:${pending ? "normal" : "0.05em"};line-height:1.4;">
+            ${idLine}
+          </div>
+          ${
+            pending
+              ? ""
+              : `<div style="font-family:${BODY_FONT};font-size:13px;color:${COLORS.text};margin-top:6px;">${opts.memberName} &middot; ${opts.planLabel}</div>`
+          }
+        </td>
+      </tr>
+    </table>`;
+}
+
 function familyMemberRowsHtml(app: MembershipApplication) {
   const slots = [
     { name: app.familyMember1Name, relation: app.familyMember1Relation, label: "Family Member 1" },
@@ -50,7 +104,25 @@ function shell(opts: { preheader: string; body: string }) {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light only" />
+    <meta name="supported-color-schemes" content="light only" />
     <title>${orgInfo.name}</title>
+    <style>
+      /* Some mobile mail apps (Gmail Android, iOS Mail dark mode, Outlook.com)
+         auto-invert or strip background colors while leaving text colors
+         untouched, which can make light text on a dark header disappear.
+         These hooks force our own colors back so the brand header/footer
+         stay readable regardless of the client's dark mode. */
+      :root { color-scheme: light only; supported-color-schemes: light only; }
+      [data-ogsc] .ssa-dark-bg, [data-ogsb] .ssa-dark-bg { background-color: ${COLORS.ink} !important; }
+      [data-ogsc] .ssa-dark-text, [data-ogsb] .ssa-dark-text { color: ${COLORS.bg} !important; }
+      [data-ogsc] .ssa-accent-text, [data-ogsb] .ssa-accent-text { color: ${COLORS.accent} !important; }
+      @media (prefers-color-scheme: dark) {
+        .ssa-dark-bg { background-color: ${COLORS.ink} !important; }
+        .ssa-dark-text { color: ${COLORS.bg} !important; }
+        .ssa-accent-text { color: ${COLORS.accent} !important; }
+      }
+    </style>
   </head>
   <body style="margin:0;padding:0;background-color:${COLORS.bg};">
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${opts.preheader}</div>
@@ -59,11 +131,11 @@ function shell(opts: { preheader: string; body: string }) {
         <td align="center">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:${COLORS.surface};border-radius:24px;overflow:hidden;">
             <tr>
-              <td style="background-color:${COLORS.ink};padding:28px 32px;text-align:center;">
-                <div style="font-family:${HEADING_FONT};font-size:13px;letter-spacing:0.12em;color:${COLORS.accent};text-transform:uppercase;margin-bottom:6px;">
+              <td class="ssa-dark-bg" bgcolor="${COLORS.ink}" style="background-color:${COLORS.ink};padding:28px 32px;text-align:center;">
+                <div class="ssa-accent-text" style="font-family:${HEADING_FONT};font-size:13px;letter-spacing:0.12em;color:${COLORS.accent};text-transform:uppercase;margin-bottom:6px;">
                   Sanatan Dharma &middot; Australia
                 </div>
-                <div style="font-family:${HEADING_FONT};font-size:22px;color:${COLORS.bg};">
+                <div class="ssa-dark-text" style="font-family:${HEADING_FONT};font-size:22px;color:${COLORS.bg};">
                   ${orgInfo.name}
                 </div>
               </td>
@@ -74,11 +146,11 @@ function shell(opts: { preheader: string; body: string }) {
               </td>
             </tr>
             <tr>
-              <td style="background-color:${COLORS.ink};padding:20px 32px;text-align:center;">
-                <div style="font-family:${BODY_FONT};font-size:12px;color:#beaf94;">
+              <td class="ssa-dark-bg" bgcolor="${COLORS.ink}" style="background-color:${COLORS.ink};padding:20px 32px;text-align:center;">
+                <div class="ssa-dark-text" style="font-family:${BODY_FONT};font-size:12px;color:#beaf94;">
                   ${orgInfo.name} &middot; Association Number ${orgInfo.associationNumber}
                 </div>
-                <div style="font-family:${BODY_FONT};font-size:12px;color:#7a6b52;margin-top:4px;">
+                <div class="ssa-dark-text" style="font-family:${BODY_FONT};font-size:12px;color:#7a6b52;margin-top:4px;">
                   ${orgInfo.addressLines.join(", ")}
                 </div>
               </td>
@@ -110,9 +182,12 @@ export function renderOrgNotificationEmail(
       Payment received via Stripe &mdash; ${amount}
     </div>
 
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.accentTint};border:1px solid ${COLORS.accent};border-radius:16px;padding:14px 18px;margin-bottom:16px;">
-      ${row("Membership ID", `<strong>${app.membershipId}</strong>`)}
-    </table>
+    ${membershipIdCardHtml({
+      membershipId: app.membershipId,
+      memberName: app.fullName,
+      planLabel: plan,
+      audience: "org",
+    })}
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.bg};border-radius:16px;padding:16px 18px;margin-bottom:16px;">
       ${row("Applicant", app.fullName)}
@@ -171,10 +246,12 @@ export function renderWelcomeEmail(
       <strong>${amount}</strong> has been received and your membership is now active.
     </p>
 
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.accentTint};border:1px solid ${COLORS.accent};border-radius:16px;padding:16px 18px;margin-bottom:16px;text-align:center;">
-      <tr><td style="font-family:${BODY_FONT};font-size:12px;color:${COLORS.muted};padding-bottom:4px;">Your Membership ID</td></tr>
-      <tr><td style="font-family:${HEADING_FONT};font-size:22px;color:${COLORS.accentDark};letter-spacing:0.04em;">${app.membershipId}</td></tr>
-    </table>
+    ${membershipIdCardHtml({
+      membershipId: app.membershipId,
+      memberName: app.fullName,
+      planLabel: plan,
+      audience: "member",
+    })}
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.bg};border-radius:16px;padding:16px 18px;margin-bottom:20px;">
       ${row("Membership Plan", plan)}
