@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
@@ -23,7 +23,26 @@ type VerifyResult =
     }
   | { status: "error"; error: string };
 
+function MembershipApplySuccessLoading() {
+  return (
+    <section className="px-4 py-20 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-xl flex-col items-center gap-4 rounded-3xl bg-card p-10 text-center shadow-md">
+        <Loader2 className="size-10 animate-spin text-primary" />
+        <p className="text-foreground/70">Confirming your payment and membership…</p>
+      </div>
+    </section>
+  );
+}
+
 export default function MembershipApplySuccessPage() {
+  return (
+    <Suspense fallback={<MembershipApplySuccessLoading />}>
+      <MembershipApplySuccessContent />
+    </Suspense>
+  );
+}
+
+function MembershipApplySuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const [result, setResult] = useState<VerifyResult>({ status: "loading" });
@@ -60,14 +79,7 @@ export default function MembershipApplySuccessPage() {
   }, [sessionId]);
 
   if (result.status === "loading") {
-    return (
-      <section className="px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-xl flex-col items-center gap-4 rounded-3xl bg-card p-10 text-center shadow-md">
-          <Loader2 className="size-10 animate-spin text-primary" />
-          <p className="text-foreground/70">Confirming your payment and membership…</p>
-        </div>
-      </section>
-    );
+    return <MembershipApplySuccessLoading />;
   }
 
   if (result.status === "error") {
