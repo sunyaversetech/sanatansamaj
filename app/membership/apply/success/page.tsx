@@ -1,69 +1,88 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, AlertCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getStripe } from "@/lib/stripe";
-import { membershipPlans, orgInfo } from "@/lib/site-data";
-import { getMembershipBySessionId } from "@/lib/records";
+import { orgInfo } from "@/lib/site-data";
 
-export default async function MembershipApplySuccessPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ session_id?: string }>;
-}) {
-  const { session_id } = await searchParams;
+type VerifyResult =
+  | { status: "loading" }
+  | {
+      status: "success";
+      data: {
+        membershipId: string;
+        isRenewal: boolean;
+        fullName: string;
+        planLabel: string;
+        amount: number;
+        currency: string;
+        email: string;
+      };
+    }
+  | { status: "error"; error: string };
 
-  let paid = false;
-  let fullName = "";
-  let planLabel = "";
-  let amount = 0;
-  let currency = "aud";
-  let email = "";
-  let membershipId = "";
+export default function MembershipApplySuccessPage() {
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session_id");
+  const [result, setResult] = useState<VerifyResult>({ status: "loading" });
 
-  if (session_id) {
-    try {
-      const stripe = getStripe();
-      const session = await stripe.checkout.sessions.retrieve(session_id);
-      paid = session.payment_status === "paid";
-      fullName = session.metadata?.fullName ?? "";
-      email = session.metadata?.email ?? session.customer_details?.email ?? "";
-      const plan = membershipPlans.find((p) => p.key === session.metadata?.planTier);
-      planLabel = plan?.label ?? "";
-      amount = (session.amount_total ?? 0) / 100;
-      currency = session.currency ?? "aud";
-    } catch (err) {
-      console.error("Failed to retrieve checkout session:", err);
+  useEffect(() => {
+    if (!sessionId) {
+      setResult({ status: "error", error: "No payment reference was provided." });
+      return;
     }
 
-    if (paid) {
-      try {
-        // The webhook assigns the membership ID asynchronously — it usually
-        // lands before this page renders, but isn't guaranteed to.
-        const record = await getMembershipBySessionId(session_id);
-        // A "PENDING-..." id means assignment failed (e.g. the database was
-        // briefly unreachable) — treat it the same as "not ready yet" rather
-        // than showing the raw placeholder to the member.
-        membershipId =
-          record?.membershipId && !record.membershipId.startsWith("PENDING-")
-            ? record.membershipId
-            : "";
-      } catch (err) {
-        console.error("Failed to look up membership record:", err);
-      }
-    }
+    let cancelled = false;
+    fetch(`/api/membership/verify?session_id=${encodeURIComponent(sessionId)}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (cancelled) return;
+        if (json.success) {
+          setResult({ status: "success", data: json.data });
+        } else {
+          setResult({ status: "error", error: json.error || "Something went wrong." });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setResult({
+            status: "error",
+            error: "We couldn't reach the server to confirm your registration.",
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId]);
+
+  if (result.status === "loading") {
+    return (
+      <section className="px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-xl flex-col items-center gap-4 rounded-3xl bg-card p-10 text-center shadow-md">
+          <Loader2 className="size-10 animate-spin text-primary" />
+          <p className="text-foreground/70">Confirming your payment and membership…</p>
+        </div>
+      </section>
+    );
   }
 
-  const firstName = fullName.trim().split(/\s+/)[0] || fullName;
-
-  if (!paid) {
+  if (result.status === "error") {
     return (
       <section className="px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-xl flex-col items-center gap-4 rounded-3xl bg-card p-10 text-center shadow-md">
           <AlertCircle className="size-12 text-destructive" />
-          <h1 className="text-2xl">We couldn&apos;t confirm this payment</h1>
-          <p className="text-foreground/70">
-            If you completed a payment, don&apos;t worry — we&apos;ll still receive it.
-            If something looks wrong, please contact us at {orgInfo.email}.
+          <h1 className="text-2xl">Something went wrong</h1>
+          <p className="text-foreground/70">{result.error}</p>
+          <p className="text-sm text-foreground/55">
+            If you were charged, don&apos;t worry — please contact us at{" "}
+            <a href={`mailto:${orgInfo.email}`} className="text-gold-700 underline">
+              {orgInfo.email}
+            </a>{" "}
+            or {orgInfo.phone} with your payment receipt so we can sort this out.
           </p>
           <Button asChild size="lg" className="mt-2">
             <Link href="/membership/apply">Back to Application</Link>
@@ -73,6 +92,9 @@ export default async function MembershipApplySuccessPage({
     );
   }
 
+  const { data } = result;
+  const firstName = data.fullName.trim().split(/\s+/)[0] || data.fullName;
+
   return (
     <section className="px-4 py-20 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-xl flex-col items-center gap-4 rounded-3xl bg-card p-10 text-center shadow-md">
@@ -81,28 +103,27 @@ export default async function MembershipApplySuccessPage({
         </span>
         <div className="font-heading text-sm text-gold-700">{orgInfo.mantra}</div>
         <h1 className="text-3xl">
-          Welcome to the family{firstName ? `, ${firstName}` : ""}!
+          {data.isRenewal ? `Thank you, ${firstName}!` : `Welcome to the family, ${firstName}!`}
         </h1>
         <p className="max-w-md text-foreground/75">
-          Thank you for becoming a {planLabel || "member"} of {orgInfo.name}. Your
-          payment of <strong>${amount.toFixed(2)} {currency.toUpperCase()}</strong>{" "}
-          has been received and your membership is now active.
+          {data.isRenewal
+            ? `Your payment for a ${data.planLabel} membership has been received against your existing membership.`
+            : `Thank you for becoming a ${data.planLabel} member of ${orgInfo.name}.`}{" "}
+          Your payment of{" "}
+          <strong>
+            ${data.amount.toFixed(2)} {data.currency.toUpperCase()}
+          </strong>{" "}
+          has been received and your membership is active.
         </p>
-        {membershipId ? (
-          <div className="rounded-2xl border border-gold-300 bg-gold-100 px-6 py-3">
-            <div className="text-xs text-foreground/55">Your Membership ID</div>
-            <div className="font-heading text-xl tracking-wide text-gold-800">
-              {membershipId}
-            </div>
+        <div className="rounded-2xl border border-gold-300 bg-gold-100 px-6 py-3">
+          <div className="text-xs text-foreground/55">Your Membership ID</div>
+          <div className="font-heading text-xl tracking-wide text-gold-800">
+            {data.membershipId}
           </div>
-        ) : (
+        </div>
+        {data.email && (
           <p className="text-sm text-foreground/55">
-            Your Membership ID will be included in your confirmation email.
-          </p>
-        )}
-        {email && (
-          <p className="text-sm text-foreground/55">
-            A confirmation email has been sent to {email}.
+            A confirmation email with your membership card has been sent to {data.email}.
           </p>
         )}
         <div className="mt-4 flex flex-wrap justify-center gap-3">

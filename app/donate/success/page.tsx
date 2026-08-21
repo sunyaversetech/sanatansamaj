@@ -1,47 +1,80 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, AlertCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getStripe } from "@/lib/stripe";
 import { orgInfo } from "@/lib/site-data";
 
-export default async function DonateSuccessPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ session_id?: string }>;
-}) {
-  const { session_id } = await searchParams;
-
-  let paid = false;
-  let fullName = "";
-  let amount = 0;
-  let currency = "aud";
-  let email = "";
-
-  if (session_id) {
-    try {
-      const stripe = getStripe();
-      const session = await stripe.checkout.sessions.retrieve(session_id);
-      paid = session.payment_status === "paid";
-      fullName = session.metadata?.fullName ?? "";
-      email = session.metadata?.email ?? session.customer_details?.email ?? "";
-      amount = (session.amount_total ?? 0) / 100;
-      currency = session.currency ?? "aud";
-    } catch (err) {
-      console.error("Failed to retrieve checkout session:", err);
+type VerifyResult =
+  | { status: "loading" }
+  | {
+      status: "success";
+      data: { fullName: string; amount: number; currency: string; email: string };
     }
+  | { status: "error"; error: string };
+
+export default function DonateSuccessPage() {
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session_id");
+  const [result, setResult] = useState<VerifyResult>({ status: "loading" });
+
+  useEffect(() => {
+    if (!sessionId) {
+      setResult({ status: "error", error: "No payment reference was provided." });
+      return;
+    }
+
+    let cancelled = false;
+    fetch(`/api/donate/verify?session_id=${encodeURIComponent(sessionId)}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (cancelled) return;
+        if (json.success) {
+          setResult({ status: "success", data: json.data });
+        } else {
+          setResult({ status: "error", error: json.error || "Something went wrong." });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setResult({
+            status: "error",
+            error: "We couldn't reach the server to confirm your donation.",
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId]);
+
+  if (result.status === "loading") {
+    return (
+      <section className="px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-xl flex-col items-center gap-4 rounded-3xl bg-card p-10 text-center shadow-md">
+          <Loader2 className="size-10 animate-spin text-primary" />
+          <p className="text-foreground/70">Confirming your donation…</p>
+        </div>
+      </section>
+    );
   }
 
-  const firstName = fullName.trim().split(/\s+/)[0] || fullName;
-
-  if (!paid) {
+  if (result.status === "error") {
     return (
       <section className="px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-xl flex-col items-center gap-4 rounded-3xl bg-card p-10 text-center shadow-md">
           <AlertCircle className="size-12 text-destructive" />
-          <h1 className="text-2xl">We couldn&apos;t confirm this payment</h1>
-          <p className="text-foreground/70">
-            If you completed a payment, don&apos;t worry — we&apos;ll still receive it.
-            If something looks wrong, please contact us at {orgInfo.email}.
+          <h1 className="text-2xl">Something went wrong</h1>
+          <p className="text-foreground/70">{result.error}</p>
+          <p className="text-sm text-foreground/55">
+            If you were charged, don&apos;t worry — please contact us at{" "}
+            <a href={`mailto:${orgInfo.email}`} className="text-gold-700 underline">
+              {orgInfo.email}
+            </a>{" "}
+            or {orgInfo.phone} with your payment receipt so we can sort this out.
           </p>
           <Button asChild size="lg" className="mt-2">
             <Link href="/donate/give">Back to Donation</Link>
@@ -50,6 +83,9 @@ export default async function DonateSuccessPage({
       </section>
     );
   }
+
+  const { data } = result;
+  const firstName = data.fullName.trim().split(/\s+/)[0] || data.fullName;
 
   return (
     <section className="px-4 py-20 sm:px-6 lg:px-8">
@@ -60,20 +96,17 @@ export default async function DonateSuccessPage({
         <div className="font-heading text-sm text-gold-700">
           &quot;दानं परमो धर्मः&quot; — Giving is the highest virtue
         </div>
-        <h1 className="text-3xl">
-          Thank you{firstName ? `, ${firstName}` : ""}!
-        </h1>
+        <h1 className="text-3xl">Thank you{firstName ? `, ${firstName}` : ""}!</h1>
         <p className="max-w-md text-foreground/75">
           Your donation of{" "}
           <strong>
-            ${amount.toFixed(2)} {currency.toUpperCase()}
+            ${data.amount.toFixed(2)} {data.currency.toUpperCase()}
           </strong>{" "}
-          to {orgInfo.name} has been received. It means a great deal to our
-          community.
+          to {orgInfo.name} has been received. It means a great deal to our community.
         </p>
-        {email && (
+        {data.email && (
           <p className="text-sm text-foreground/55">
-            A confirmation email has been sent to {email}.
+            A confirmation email has been sent to {data.email}.
           </p>
         )}
         <div className="mt-4 flex flex-wrap justify-center gap-3">

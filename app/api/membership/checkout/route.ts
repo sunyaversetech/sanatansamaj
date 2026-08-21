@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { membershipApplicationSchema } from "@/lib/membership-schema";
 import { membershipPlans } from "@/lib/site-data";
+import { connectToDb } from "@/lib/db";
+import { Membership } from "@/lib/models/Membership.model";
 
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -79,9 +81,44 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    try {
+      await connectToDb();
+      await Membership.create({
+        fullName: data.fullName,
+        telephone: data.telephone,
+        email: data.email,
+        occupation: data.occupation,
+        planTier: data.planTier,
+        familyMember1Name: data.familyMember1Name,
+        familyMember1Relation: data.familyMember1Relation,
+        familyMember2Name: data.familyMember2Name,
+        familyMember2Relation: data.familyMember2Relation,
+        familyMember3Name: data.familyMember3Name,
+        familyMember3Relation: data.familyMember3Relation,
+        address: data.address,
+        specialInterests: data.specialInterests,
+        signOffDate: data.signOffDate,
+        amountPaid: plan.amount,
+        currency: "aud",
+        status: "pending",
+        stripeSessionId: session.id,
+      });
+    } catch (err) {
+      // Non-fatal: the checkout has already been created with Stripe, and
+      // /api/membership/verify will insert the final record on success if
+      // this pending row didn't make it in. Logged so it can be traced.
+      console.error(
+        "POST /api/membership/checkout: failed to write pending record:",
+        err,
+      );
+    }
+
     return NextResponse.json({ clientSecret: session.client_secret });
   } catch (err) {
-    console.error("Stripe checkout session creation failed:", err);
+    console.error(
+      "POST /api/membership/checkout: Stripe session creation failed:",
+      err,
+    );
     return NextResponse.json(
       { error: "Payment setup failed. Please try again shortly." },
       { status: 502 },

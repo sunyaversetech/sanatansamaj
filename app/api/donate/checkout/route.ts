@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { donationSchema } from "@/lib/donation-schema";
+import { connectToDb } from "@/lib/db";
+import { Donation } from "@/lib/models/Donation.model";
 
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -62,9 +64,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    try {
+      await connectToDb();
+      await Donation.create({
+        fullName: data.fullName,
+        email: data.email,
+        amount: data.amount,
+        currency: "aud",
+        isAnonymous: data.isAnonymous,
+        status: "pending",
+        stripeSessionId: session.id,
+      });
+    } catch (err) {
+      // Non-fatal: the checkout has already been created with Stripe, and
+      // /api/donate/verify will insert the final record on success if this
+      // pending row didn't make it in. Logged so it can be traced.
+      console.error("POST /api/donate/checkout: failed to write pending record:", err);
+    }
+
     return NextResponse.json({ clientSecret: session.client_secret });
   } catch (err) {
-    console.error("Stripe donation checkout session creation failed:", err);
+    console.error(
+      "POST /api/donate/checkout: Stripe session creation failed:",
+      err,
+    );
     return NextResponse.json(
       { error: "Payment setup failed. Please try again shortly." },
       { status: 502 },
