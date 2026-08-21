@@ -29,6 +29,7 @@ export async function sendEmail(payload: {
   to: string;
   subject: string;
   html: string;
+  attachments?: { filename: string; content: Buffer; contentType?: string }[];
 }) {
   const resend = getResend();
   const { data, error } = await resend.emails.send(payload);

@@ -17,10 +17,14 @@ import {
   getNextMembershipId,
   getMembershipBySessionId,
 } from "@/lib/records";
+import { renderMembershipCardPng } from "@/lib/membership-card";
+import { membershipPlans } from "@/lib/site-data";
 
 export const runtime = "nodejs";
 
-async function sendMembershipEmails(session: Stripe.Checkout.Session) {
+async function sendMembershipEmails(session: Stripe.Checkout.Session, origin: string) {
+  const logoUrl = `${origin}/logo.png`;
+
   // Guards against a retried/duplicate webhook delivery re-processing the
   // same payment — that would burn a second sequential membership ID and
   // send duplicate emails for one real membership.
@@ -83,8 +87,32 @@ async function sendMembershipEmails(session: Stripe.Checkout.Session) {
     currency: session.currency ?? "aud",
   };
 
-  const orgEmail = renderOrgNotificationEmail(application);
-  const welcomeEmail = renderWelcomeEmail(application);
+  const orgEmail = renderOrgNotificationEmail(application, logoUrl);
+  const welcomeEmail = renderWelcomeEmail(application, logoUrl);
+
+  // Only issue a card image once a real sequential ID exists — a card
+  // stamped "PENDING-XXXXXXXX" would look broken, and the DB record (which
+  // will hold the real ID once Mongo is reachable again) is what matters,
+  // not this attachment.
+  let cardAttachment: { filename: string; content: Buffer; contentType: string }[] | undefined;
+  if (!membershipId.startsWith("PENDING-")) {
+    try {
+      const planLabel =
+        membershipPlans.find((p) => p.key === application.planTier)?.label ?? application.planTier;
+      const png = await renderMembershipCardPng({
+        membershipId: application.membershipId,
+        fullName: application.fullName,
+        planLabel,
+        planTier: application.planTier,
+        signOffDate: application.signOffDate,
+      });
+      cardAttachment = [
+        { filename: "membership-card.png", content: png, contentType: "image/png" },
+      ];
+    } catch (err) {
+      console.error("Stripe webhook: failed to render membership card, sending without it", err);
+    }
+  }
 
   const results = await Promise.allSettled([
     saveMembershipApplication({
@@ -99,12 +127,14 @@ async function sendMembershipEmails(session: Stripe.Checkout.Session) {
       to: orgInfo.applicationsEmail,
       subject: orgEmail.subject,
       html: orgEmail.html,
+      attachments: cardAttachment,
     }),
     sendEmail({
       from: EMAIL_FROM,
       to: application.email,
       subject: welcomeEmail.subject,
       html: welcomeEmail.html,
+      attachments: cardAttachment,
     }),
   ]);
 
@@ -119,7 +149,9 @@ async function sendMembershipEmails(session: Stripe.Checkout.Session) {
   }
 }
 
-async function sendDonationEmails(session: Stripe.Checkout.Session) {
+async function sendDonationEmails(session: Stripe.Checkout.Session, origin: string) {
+  const logoUrl = `${origin}/logo.png`;
+
   const metadata = session.metadata ?? {};
   const parsed = donationSchema.safeParse({
     fullName: metadata.fullName,
@@ -141,8 +173,8 @@ async function sendDonationEmails(session: Stripe.Checkout.Session) {
     currency: session.currency ?? "aud",
   };
 
-  const orgEmail = renderDonationOrgNotificationEmail(donation);
-  const thankYouEmail = renderDonationThankYouEmail(donation);
+  const orgEmail = renderDonationOrgNotificationEmail(donation, logoUrl);
+  const thankYouEmail = renderDonationThankYouEmail(donation, logoUrl);
 
   const results = await Promise.allSettled([
     saveDonation({
@@ -201,9 +233,9 @@ export async function POST(req: NextRequest) {
     if (session.payment_status === "paid") {
       try {
         if (session.metadata?.kind === "donation") {
-          await sendDonationEmails(session);
+          await sendDonationEmails(session, req.nextUrl.origin);
         } else {
-          await sendMembershipEmails(session);
+          await sendMembershipEmails(session, req.nextUrl.origin);
         }
       } catch (err) {
         console.error("Stripe webhook: error sending emails:", err);

@@ -88,17 +88,31 @@ function membershipIdCardHtml(opts: {
 
 function familyMemberRowsHtml(app: MembershipApplication) {
   const slots = [
-    { name: app.familyMember1Name, relation: app.familyMember1Relation, label: "Family Member 1" },
-    { name: app.familyMember2Name, relation: app.familyMember2Relation, label: "Family Member 2" },
-    { name: app.familyMember3Name, relation: app.familyMember3Relation, label: "Family Member 3" },
+    {
+      name: app.familyMember1Name,
+      relation: app.familyMember1Relation,
+      label: "Family Member 1",
+    },
+    {
+      name: app.familyMember2Name,
+      relation: app.familyMember2Relation,
+      label: "Family Member 2",
+    },
+    {
+      name: app.familyMember3Name,
+      relation: app.familyMember3Relation,
+      label: "Family Member 3",
+    },
   ];
   return slots
     .filter((s) => s.name)
-    .map((s) => row(s.label, `${s.name}${s.relation ? ` (${s.relation})` : ""}`))
+    .map((s) =>
+      row(s.label, `${s.name}${s.relation ? ` (${s.relation})` : ""}`),
+    )
     .join("");
 }
 
-function shell(opts: { preheader: string; body: string }) {
+function shell(opts: { preheader: string; body: string; logoUrl: string }) {
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -131,13 +145,22 @@ function shell(opts: { preheader: string; body: string }) {
         <td align="center">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:${COLORS.surface};border-radius:24px;overflow:hidden;">
             <tr>
-              <td class="ssa-dark-bg" bgcolor="${COLORS.ink}" style="background-color:${COLORS.ink};padding:28px 32px;text-align:center;">
-                <div class="ssa-accent-text" style="font-family:${HEADING_FONT};font-size:13px;letter-spacing:0.12em;color:${COLORS.accent};text-transform:uppercase;margin-bottom:6px;">
-                  Sanatan Dharma &middot; Australia
-                </div>
-                <div class="ssa-dark-text" style="font-family:${HEADING_FONT};font-size:22px;color:${COLORS.bg};">
-                  ${orgInfo.name}
-                </div>
+              <td class="ssa-dark-bg" bgcolor="${COLORS.ink}" style="background-color:${COLORS.ink};padding:24px 32px;text-align:center;">
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                  <tr>
+                    <td style="padding-right:14px;vertical-align:middle;">
+                      <img src="${opts.logoUrl}" width="44" height="44" alt="${orgInfo.name}" style="display:block;border-radius:999px;" />
+                    </td>
+                    <td style="vertical-align:middle;text-align:left;">
+                      <div class="ssa-accent-text" style="font-family:${HEADING_FONT};font-size:13px;letter-spacing:0.12em;color:${COLORS.accent};text-transform:uppercase;margin-bottom:4px;">
+                        Sanatan Dharma &middot; Australia
+                      </div>
+                      <div class="ssa-dark-text" style="font-family:${HEADING_FONT};font-size:22px;color:${COLORS.bg};">
+                        ${orgInfo.name}
+                      </div>
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>
             <tr>
@@ -169,6 +192,7 @@ export function renderOrgNotificationEmail(
     amountPaid: number;
     currency: string;
   },
+  logoUrl: string,
 ) {
   const plan = planLabel(app.planTier);
   const amount = `$${app.amountPaid.toFixed(2)} ${app.currency.toUpperCase()}`;
@@ -218,6 +242,7 @@ export function renderOrgNotificationEmail(
     html: shell({
       preheader: `${app.fullName} just paid ${amount} for ${plan} membership. ID: ${app.membershipId}.`,
       body,
+      logoUrl,
     }),
   };
 }
@@ -228,6 +253,7 @@ export function renderWelcomeEmail(
     amountPaid: number;
     currency: string;
   },
+  logoUrl: string,
 ) {
   const plan = planLabel(app.planTier);
   const amount = `$${app.amountPaid.toFixed(2)} ${app.currency.toUpperCase()}`;
@@ -252,6 +278,13 @@ export function renderWelcomeEmail(
       planLabel: plan,
       audience: "member",
     })}
+    ${
+      !isPendingId(app.membershipId)
+        ? `<p style="font-family:${BODY_FONT};font-size:13px;color:${COLORS.muted};margin:-8px 0 16px;text-align:center;">
+      A copy of your membership card is attached to this email.
+    </p>`
+        : ""
+    }
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.bg};border-radius:16px;padding:16px 18px;margin-bottom:20px;">
       ${row("Membership Plan", plan)}
@@ -281,12 +314,14 @@ export function renderWelcomeEmail(
     html: shell({
       preheader: `Your ${plan} membership is confirmed. Welcome to Sanatan Samaj Australia!`,
       body,
+      logoUrl,
     }),
   };
 }
 
 export function renderDonationOrgNotificationEmail(
   donation: Donation & { currency: string },
+  logoUrl: string,
 ) {
   const amount = `$${donation.amount.toFixed(2)} ${donation.currency.toUpperCase()}`;
 
@@ -311,15 +346,18 @@ export function renderDonationOrgNotificationEmail(
     html: shell({
       preheader: `${donation.fullName} just donated ${amount}.`,
       body,
+      logoUrl,
     }),
   };
 }
 
 export function renderDonationThankYouEmail(
   donation: Donation & { currency: string },
+  logoUrl: string,
 ) {
   const amount = `$${donation.amount.toFixed(2)} ${donation.currency.toUpperCase()}`;
-  const firstName = donation.fullName.trim().split(/\s+/)[0] || donation.fullName;
+  const firstName =
+    donation.fullName.trim().split(/\s+/)[0] || donation.fullName;
 
   const body = `
     <div style="font-family:${HEADING_FONT};font-size:15px;color:${COLORS.accentDark};margin-bottom:2px;">
@@ -352,6 +390,7 @@ export function renderDonationThankYouEmail(
     html: shell({
       preheader: `Your ${amount} donation to Sanatan Samaj Australia has been received. Thank you!`,
       body,
+      logoUrl,
     }),
   };
 }
