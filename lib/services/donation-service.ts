@@ -32,7 +32,7 @@ async function notifyOrgOfFailure(session: Stripe.Checkout.Session, reason: stri
     });
     await sendEmail({
       from: EMAIL_FROM,
-      to: orgInfo.applicationsEmail,
+      to: orgInfo.email,
       subject: alert.subject,
       html: alert.html,
     });
@@ -108,7 +108,7 @@ export async function fulfillDonation(
   const emailResults = await Promise.allSettled([
     sendEmail({
       from: EMAIL_FROM,
-      to: orgInfo.applicationsEmail,
+      to: orgInfo.email,
       subject: orgEmail.subject,
       html: orgEmail.html,
     }),

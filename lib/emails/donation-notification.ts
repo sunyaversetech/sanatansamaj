@@ -15,10 +15,10 @@ export function renderDonationOrgNotificationEmail(
 
   const body = `
     <div style="font-family:${HEADING_FONT};font-size:20px;color:${COLORS.text};margin-bottom:4px;">
-      New Donation Received
+      A donation of ${amount} has been made by ${donation.fullName}
     </div>
     <div style="font-family:${BODY_FONT};font-size:13px;color:${COLORS.muted};margin-bottom:20px;">
-      Payment received via Stripe &mdash; ${amount}
+      Payment received via Stripe
     </div>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.bg};border-radius:16px;padding:16px 18px;">

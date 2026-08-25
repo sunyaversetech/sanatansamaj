@@ -33,9 +33,8 @@ export default function MembershipPage() {
           <div className="flex flex-col gap-3 rounded-3xl bg-card p-6 shadow-md">
             <div className="font-heading text-xl">How to Apply</div>
             <p className="text-sm text-foreground/75">
-              Fill in the membership form online, or download the SSA
-              Membership Application Form and send the completed form to our
-              Secretary.
+              Fill in the membership form online, or download the SSA Membership
+              Application Form and send the completed form to our Secretary.
             </p>
             <div className="text-xs text-foreground/55">
               Secretary: {orgInfo.email}

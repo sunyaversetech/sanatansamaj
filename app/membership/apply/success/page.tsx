@@ -19,6 +19,7 @@ type VerifyResult =
         amount: number;
         currency: string;
         email: string;
+        validTill: string;
       };
     }
   | { status: "error"; error: string };
@@ -127,10 +128,13 @@ function MembershipApplySuccessContent() {
           </strong>{" "}
           has been received and your membership is active.
         </p>
-        <div className="rounded-2xl border border-gold-300 bg-gold-100 px-6 py-3">
+        <div className="rounded-2xl border border-gold-300 bg-gold-100 px-6 py-3 text-center">
           <div className="text-xs text-foreground/55">Your Membership ID</div>
           <div className="font-heading text-xl tracking-wide text-gold-800">
             {data.membershipId}
+          </div>
+          <div className="mt-1 text-xs text-foreground/55">
+            Valid Till: <span className="font-medium text-gold-700">{data.validTill}</span>
           </div>
         </div>
         {data.email && (

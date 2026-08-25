@@ -40,15 +40,22 @@ export function membershipIdCardHtml(opts: {
   memberName: string;
   planLabel: string;
   isRenewal: boolean;
+  validTill: string;
+  familyMemberNames?: string[];
 }) {
   const stripText = opts.isRenewal
-    ? "Sanatan Samaj Australia &middot; Existing Membership"
+    ? "Sanatan Samaj Australia &middot; Membership Renewed"
     : "Sanatan Samaj Australia &middot; Membership Card";
+
+  const familyLine =
+    opts.familyMemberNames && opts.familyMemberNames.length > 0
+      ? `<div style="font-family:${BODY_FONT};font-size:12px;color:${COLORS.muted};margin-top:2px;">Family: ${opts.familyMemberNames.join(", ")}</div>`
+      : "";
 
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${COLORS.accentTint};border:2px solid ${COLORS.accent};border-radius:16px;margin-bottom:16px;">
       <tr>
-        <td class="ssa-dark-bg" bgcolor="${COLORS.accent}" style="background-color:${COLORS.accent};border-radius:13px 13px 0 0;padding:8px 18px;text-align:center;">
+        <td class="ssa-dark-bg" bgcolor="white" style="background-color:"white";border-radius:13px 13px 0 0;padding:8px 18px;text-align:center;">
           <div class="ssa-dark-text" style="font-family:${HEADING_FONT};font-size:11px;letter-spacing:0.12em;color:${COLORS.bg};text-transform:uppercase;">
             ${stripText}
           </div>
@@ -65,12 +72,20 @@ export function membershipIdCardHtml(opts: {
           <div style="font-family:${BODY_FONT};font-size:13px;color:${COLORS.text};margin-top:6px;">
             ${opts.memberName} &middot; ${opts.planLabel}
           </div>
+          ${familyLine}
+          <div style="font-family:${BODY_FONT};font-size:12px;color:${COLORS.muted};margin-top:8px;">
+            Valid Till: <strong style="color:${COLORS.accentDark};">${opts.validTill}</strong>
+          </div>
         </td>
       </tr>
     </table>`;
 }
 
-export function shell(opts: { preheader: string; body: string; logoUrl: string }) {
+export function shell(opts: {
+  preheader: string;
+  body: string;
+  logoUrl: string;
+}) {
   return `<!doctype html>
 <html lang="en">
   <head>

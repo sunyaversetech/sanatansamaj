@@ -10,41 +10,15 @@ const GOLD = "#c9962c";
 const GOLD_DARK = "#7d5817";
 const INK = "#1b1712";
 
-function formatDate(iso: string) {
-  const d = new Date(`${iso}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return iso;
-  return new Intl.DateTimeFormat("en-AU", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(d);
-}
-
-function membershipPeriod(planTier: MembershipApplication["planTier"], signOffDate: string) {
-  if (planTier === "life") {
-    const year = new Date(`${signOffDate}T00:00:00`).getFullYear();
-    return { label: "MEMBER SINCE", value: Number.isNaN(year) ? signOffDate : String(year) };
-  }
-  const start = new Date(`${signOffDate}T00:00:00`);
-  if (Number.isNaN(start.getTime())) {
-    return { label: "VALID", value: "1 Year from Purchase" };
-  }
-  const end = new Date(start);
-  end.setFullYear(end.getFullYear() + 1);
-  return {
-    label: "VALID",
-    value: `${formatDate(signOffDate)} — ${new Intl.DateTimeFormat("en-AU", { day: "2-digit", month: "short", year: "numeric" }).format(end)}`,
-  };
-}
-
 export async function renderMembershipCardPng(data: {
   membershipId: string;
   fullName: string;
   planLabel: string;
   planTier: MembershipApplication["planTier"];
-  signOffDate: string;
+  validTill: string;
+  familyMemberNames?: string[];
 }): Promise<Buffer> {
-  const period = membershipPeriod(data.planTier, data.signOffDate);
+  const hasFamily = Boolean(data.familyMemberNames && data.familyMemberNames.length > 0);
 
   const image = new ImageResponse(
     (
@@ -104,6 +78,11 @@ export async function renderMembershipCardPng(data: {
           <div style={{ fontSize: 52, fontWeight: 700, color: INK, letterSpacing: -1 }}>
             {data.fullName}
           </div>
+          {hasFamily ? (
+            <div style={{ display: "flex", fontSize: 20, color: GOLD_DARK, marginTop: 6 }}>
+              Family: {data.familyMemberNames!.join(", ")}
+            </div>
+          ) : null}
         </div>
 
         {/* Footer row */}
@@ -118,9 +97,9 @@ export async function renderMembershipCardPng(data: {
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
             <div style={{ fontSize: 18, color: GOLD_DARK, letterSpacing: 2, marginBottom: 6 }}>
-              {period.label}
+              VALID TILL
             </div>
-            <div style={{ fontSize: 24, fontWeight: 600, color: INK }}>{period.value}</div>
+            <div style={{ fontSize: 24, fontWeight: 600, color: INK }}>{data.validTill}</div>
           </div>
         </div>
       </div>

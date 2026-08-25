@@ -90,8 +90,11 @@ export default function MembershipApplyPage() {
       setCheckoutOpen(true);
     } catch (err) {
       console.error("Checkout error:", err);
-      toast.error("Something went wrong", {
-        description: "We couldn't start the payment. Please try again.",
+      toast.error("Cannot continue to payment", {
+        description:
+          err instanceof Error
+            ? err.message
+            : "We couldn't start the payment. Please try again.",
       });
     }
   }

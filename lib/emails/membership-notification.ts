@@ -39,16 +39,23 @@ export function renderOrgNotificationEmail(
     amountPaid: number;
     currency: string;
     isRenewal: boolean;
+    validTill: string;
   },
   logoUrl: string,
 ) {
   const plan = planLabel(app.planTier);
   const amount = `$${app.amountPaid.toFixed(2)} ${app.currency.toUpperCase()}`;
   const familyMemberRows = familyMemberRowsHtml(app);
+  const familyMemberNames =
+    app.planTier === "family"
+      ? [app.familyMember1Name, app.familyMember2Name, app.familyMember3Name].filter(
+          (n): n is string => Boolean(n),
+        )
+      : undefined;
 
   const body = `
     <div style="font-family:${HEADING_FONT};font-size:20px;color:${COLORS.text};margin-bottom:4px;">
-      ${app.isRenewal ? "Repeat Membership Purchase" : "New Membership Application"}
+      ${app.isRenewal ? `${app.fullName} has renewed their membership` : "A new member has joined"}
     </div>
     <div style="font-family:${BODY_FONT};font-size:13px;color:${COLORS.muted};margin-bottom:20px;">
       Payment received via Stripe &mdash; ${amount}
@@ -60,6 +67,8 @@ export function renderOrgNotificationEmail(
       memberName: app.fullName,
       planLabel: plan,
       isRenewal: app.isRenewal,
+      validTill: app.validTill,
+      familyMemberNames,
     })}
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.bg};border-radius:16px;padding:16px 18px;margin-bottom:16px;">
@@ -69,6 +78,7 @@ export function renderOrgNotificationEmail(
       ${row("Occupation", app.occupation)}
       ${row("Membership Plan", plan)}
       ${row("Amount Paid", amount)}
+      ${row("Valid Till", app.validTill)}
       ${row("Repeat Purchase", app.isRenewal ? "Yes — reused existing membership ID" : "No — first purchase")}
       ${row("Sign-Off Date", app.signOffDate)}
     </table>
@@ -88,7 +98,9 @@ export function renderOrgNotificationEmail(
   `;
 
   return {
-    subject: `New Membership Application — ${app.fullName} (${app.membershipId})`,
+    subject: app.isRenewal
+      ? `Membership Renewed — ${app.fullName} (${app.membershipId})`
+      : `New Member Has Joined — ${app.fullName} (${app.membershipId})`,
     html: shell({
       preheader: `${app.fullName} just paid ${amount} for ${plan} membership. ID: ${app.membershipId}.`,
       body,

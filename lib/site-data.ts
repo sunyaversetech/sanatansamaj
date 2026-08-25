@@ -166,7 +166,7 @@ export const membershipPlans = [
     label: "Life Member",
     price: "$500 one-off",
     amount: 500,
-    idPrefix: "LF",
+    idPrefix: "LFT",
   },
 ] as const;
 

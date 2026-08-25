@@ -16,12 +16,19 @@ export function renderWelcomeEmail(
     amountPaid: number;
     currency: string;
     isRenewal: boolean;
+    validTill: string;
   },
   logoUrl: string,
 ) {
   const plan = planLabel(app.planTier);
   const amount = `$${app.amountPaid.toFixed(2)} ${app.currency.toUpperCase()}`;
   const firstName = app.fullName.trim().split(/\s+/)[0] || app.fullName;
+  const familyMemberNames =
+    app.planTier === "family"
+      ? [app.familyMember1Name, app.familyMember2Name, app.familyMember3Name].filter(
+          (n): n is string => Boolean(n),
+        )
+      : undefined;
 
   const body = `
     <div style="font-family:${HEADING_FONT};font-size:15px;color:${COLORS.accentDark};margin-bottom:2px;">
@@ -43,6 +50,8 @@ export function renderWelcomeEmail(
       memberName: app.fullName,
       planLabel: plan,
       isRenewal: app.isRenewal,
+      validTill: app.validTill,
+      familyMemberNames,
     })}
     <p style="font-family:${BODY_FONT};font-size:13px;color:${COLORS.muted};margin:-8px 0 16px;text-align:center;">
       A copy of your membership card is attached to this email.
@@ -51,6 +60,7 @@ export function renderWelcomeEmail(
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.bg};border-radius:16px;padding:16px 18px;margin-bottom:20px;">
       ${row("Membership Plan", plan)}
       ${row("Amount Paid", amount)}
+      ${row("Valid Till", app.validTill)}
       ${row("Member Name", app.fullName)}
     </table>
 

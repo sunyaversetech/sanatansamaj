@@ -4,6 +4,7 @@ import { membershipApplicationSchema } from "@/lib/membership-schema";
 import { membershipPlans } from "@/lib/site-data";
 import { connectToDb } from "@/lib/db";
 import { Membership } from "@/lib/models/Membership.model";
+import { checkRenewalEligibility } from "@/lib/services/membership-service";
 
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -30,6 +31,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: "Unknown membership plan" },
       { status: 400 },
+    );
+  }
+
+  // Checked before Stripe is even asked to create a session, so someone who
+  // isn't allowed to (re)purchase — a lifetime member, or an annual member
+  // still within their current validTill year — is never charged.
+  try {
+    const eligibility = await checkRenewalEligibility(data.email);
+    if (!eligibility.eligible) {
+      return NextResponse.json({ error: eligibility.reason }, { status: 409 });
+    }
+  } catch (err) {
+    console.error("POST /api/membership/checkout: eligibility check failed:", err);
+    return NextResponse.json(
+      { error: "We couldn't verify your membership status right now. Please try again shortly." },
+      { status: 503 },
     );
   }
 
@@ -83,26 +100,36 @@ export async function POST(req: NextRequest) {
 
     try {
       await connectToDb();
-      await Membership.create({
-        fullName: data.fullName,
-        telephone: data.telephone,
-        email: data.email,
-        occupation: data.occupation,
-        planTier: data.planTier,
-        familyMember1Name: data.familyMember1Name,
-        familyMember1Relation: data.familyMember1Relation,
-        familyMember2Name: data.familyMember2Name,
-        familyMember2Relation: data.familyMember2Relation,
-        familyMember3Name: data.familyMember3Name,
-        familyMember3Relation: data.familyMember3Relation,
-        address: data.address,
-        specialInterests: data.specialInterests,
-        signOffDate: data.signOffDate,
-        amountPaid: plan.amount,
-        currency: "aud",
-        status: "pending",
-        stripeSessionId: session.id,
-      });
+      // One document per email: this either creates a brand-new pending row
+      // or, on a renewal, marks the person's existing row pending again
+      // against the new checkout session — without touching their existing
+      // membershipId or validTill, which are only set on fulfillment.
+      await Membership.updateOne(
+        { email: data.email.toLowerCase().trim() },
+        {
+          $set: {
+            fullName: data.fullName,
+            telephone: data.telephone,
+            email: data.email,
+            occupation: data.occupation,
+            planTier: data.planTier,
+            familyMember1Name: data.familyMember1Name,
+            familyMember1Relation: data.familyMember1Relation,
+            familyMember2Name: data.familyMember2Name,
+            familyMember2Relation: data.familyMember2Relation,
+            familyMember3Name: data.familyMember3Name,
+            familyMember3Relation: data.familyMember3Relation,
+            address: data.address,
+            specialInterests: data.specialInterests,
+            signOffDate: data.signOffDate,
+            amountPaid: plan.amount,
+            currency: "aud",
+            status: "pending",
+            stripeSessionId: session.id,
+          },
+        },
+        { upsert: true },
+      );
     } catch (err) {
       // Non-fatal: the checkout has already been created with Stripe, and
       // /api/membership/verify will insert the final record on success if
