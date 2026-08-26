@@ -55,8 +55,8 @@ export function membershipIdCardHtml(opts: {
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${COLORS.accentTint};border:2px solid ${COLORS.accent};border-radius:16px;margin-bottom:16px;">
       <tr>
-        <td class="ssa-dark-bg" bgcolor="white" style="background-color:"white";border-radius:13px 13px 0 0;padding:8px 18px;text-align:center;">
-          <div class="ssa-dark-text" style="font-family:${HEADING_FONT};font-size:11px;letter-spacing:0.12em;color:${COLORS.bg};text-transform:uppercase;">
+        <td bgcolor="white" style="background-color:white;border-radius:13px 13px 0 0;padding:8px 18px;text-align:center;">
+          <div style="font-family:${HEADING_FONT};font-size:11px;letter-spacing:0.12em;color:${COLORS.accentDark};text-transform:uppercase;">
             ${stripText}
           </div>
         </td>
@@ -95,20 +95,7 @@ export function shell(opts: {
     <meta name="supported-color-schemes" content="light only" />
     <title>${orgInfo.name}</title>
     <style>
-      /* Some mobile mail apps (Gmail Android, iOS Mail dark mode, Outlook.com)
-         auto-invert or strip background colors while leaving text colors
-         untouched, which can make light text on a dark header disappear.
-         These hooks force our own colors back so the brand header/footer
-         stay readable regardless of the client's dark mode. */
       :root { color-scheme: light only; supported-color-schemes: light only; }
-      [data-ogsc] .ssa-dark-bg, [data-ogsb] .ssa-dark-bg { background-color: ${COLORS.ink} !important; }
-      [data-ogsc] .ssa-dark-text, [data-ogsb] .ssa-dark-text { color: ${COLORS.bg} !important; }
-      [data-ogsc] .ssa-accent-text, [data-ogsb] .ssa-accent-text { color: ${COLORS.accent} !important; }
-      @media (prefers-color-scheme: dark) {
-        .ssa-dark-bg { background-color: ${COLORS.ink} !important; }
-        .ssa-dark-text { color: ${COLORS.bg} !important; }
-        .ssa-accent-text { color: ${COLORS.accent} !important; }
-      }
     </style>
   </head>
   <body style="margin:0;padding:0;background-color:${COLORS.bg};">
@@ -118,17 +105,17 @@ export function shell(opts: {
         <td align="center">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:${COLORS.surface};border-radius:24px;overflow:hidden;">
             <tr>
-              <td class="ssa-dark-bg" bgcolor="${COLORS.ink}" style="background-color:${COLORS.ink};padding:24px 32px;text-align:center;">
+              <td bgcolor="${COLORS.accent}" style="background-color:${COLORS.accent};padding:24px 32px;text-align:center;">
                 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
                   <tr>
                     <td style="padding-right:14px;vertical-align:middle;">
-                      <img src="${opts.logoUrl}" width="44" height="44" alt="${orgInfo.name}" style="display:block;border-radius:999px;" />
+                      <img src="${opts.logoUrl}" width="44" height="44" alt="${orgInfo.name}" style="display:block;border-radius:999px;background-color:${COLORS.ink};padding:4px;" />
                     </td>
                     <td style="vertical-align:middle;text-align:left;">
-                      <div class="ssa-accent-text" style="font-family:${HEADING_FONT};font-size:13px;letter-spacing:0.12em;color:${COLORS.accent};text-transform:uppercase;margin-bottom:4px;">
+                      <div style="font-family:${HEADING_FONT};font-size:13px;letter-spacing:0.12em;color:${COLORS.ink};text-transform:uppercase;margin-bottom:4px;">
                         Sanatan Dharma &middot; Australia
                       </div>
-                      <div class="ssa-dark-text" style="font-family:${HEADING_FONT};font-size:22px;color:${COLORS.bg};">
+                      <div style="font-family:${HEADING_FONT};font-size:22px;font-weight:bold;color:${COLORS.ink};">
                         ${orgInfo.name}
                       </div>
                     </td>
@@ -142,11 +129,11 @@ export function shell(opts: {
               </td>
             </tr>
             <tr>
-              <td class="ssa-dark-bg" bgcolor="${COLORS.ink}" style="background-color:${COLORS.ink};padding:20px 32px;text-align:center;">
-                <div class="ssa-dark-text" style="font-family:${BODY_FONT};font-size:12px;color:#beaf94;">
+              <td bgcolor="${COLORS.accent}" style="background-color:${COLORS.accent};padding:20px 32px;text-align:center;">
+                <div style="font-family:${BODY_FONT};font-size:12px;font-weight:600;color:${COLORS.ink};">
                   ${orgInfo.name} &middot; Association Number ${orgInfo.associationNumber}
                 </div>
-                <div class="ssa-dark-text" style="font-family:${BODY_FONT};font-size:12px;color:#7a6b52;margin-top:4px;">
+                <div style="font-family:${BODY_FONT};font-size:12px;color:${COLORS.cocoa};margin-top:4px;">
                   ${orgInfo.addressLines.join(", ")}
                 </div>
               </td>

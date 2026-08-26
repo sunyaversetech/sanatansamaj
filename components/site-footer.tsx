@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { orgInfo, socials } from "@/lib/site-data";
 
 const quickLinks = [
@@ -15,6 +18,12 @@ const communityLinks = [
 ];
 
 export function SiteFooter() {
+  const pathname = usePathname();
+
+  // The admin area has its own sidebar/footer — the public site chrome
+  // doesn't belong there.
+  if (pathname.startsWith("/admin")) return null;
+
   return (
     <footer className="mt-auto bg-sand-900 px-4 py-12 text-sand-200 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
