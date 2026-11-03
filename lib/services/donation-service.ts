@@ -1,8 +1,9 @@
+import { randomUUID } from "crypto";
 import type Stripe from "stripe";
 import { connectToDb } from "@/lib/db";
 import { Donation } from "@/lib/models/Donation.model";
 import { sendEmail, EMAIL_FROM } from "@/lib/resend";
-import { donationSchema } from "@/lib/donation-schema";
+import { donationSchema, type AdminDonationInput } from "@/lib/donation-schema";
 import { orgInfo } from "@/lib/site-data";
 import {
   renderDonationOrgNotificationEmail,
@@ -126,4 +127,41 @@ export async function fulfillDonation(
   }
 
   return { fullName: data.fullName, amount: data.amount, currency, email: data.email };
+}
+
+// Records a donation taken outside of Stripe (cash at an event, bank transfer
+// and so on). Only the donor is emailed — the org notification announces a
+// Stripe payment, and the admin recording this already knows about it.
+export async function addManualDonation(
+  input: AdminDonationInput,
+  logoUrl: string,
+): Promise<{ emailFailed: boolean }> {
+  await connectToDb();
+
+  const { sendThankYouEmail, email, ...data } = input;
+  const currency = "aud";
+
+  await Donation.create({
+    ...data,
+    email: email || undefined,
+    currency,
+    status: "paid",
+    stripeSessionId: `manual_${randomUUID()}`,
+  });
+
+  if (!sendThankYouEmail || !email) return { emailFailed: false };
+
+  try {
+    const thankYouEmail = renderDonationThankYouEmail({ ...data, email, currency }, logoUrl);
+    await sendEmail({
+      from: EMAIL_FROM,
+      to: email,
+      subject: thankYouEmail.subject,
+      html: thankYouEmail.html,
+    });
+    return { emailFailed: false };
+  } catch (err) {
+    console.error("addManualDonation: failed to send the thank-you email", err);
+    return { emailFailed: true };
+  }
 }

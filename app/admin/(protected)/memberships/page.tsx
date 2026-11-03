@@ -17,7 +17,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { useDebounce } from "@/hooks/use-debounce";
-import { manualPaymentMethodLabels } from "@/lib/membership-schema";
+import { manualPaymentMethodLabels } from "@/lib/manual-payment";
 
 type MembershipRow = {
   _id: string;

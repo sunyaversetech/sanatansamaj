@@ -33,10 +33,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { manualPaymentMethodLabels } from "@/lib/manual-payment";
 import { membershipPlans } from "@/lib/site-data";
 import {
   adminMembershipSchema,
-  manualPaymentMethodLabels,
   type AdminMembershipInput,
 } from "@/lib/membership-schema";
 

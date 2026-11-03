@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Search, Loader2 } from "lucide-react";
+import { AddDonationDialog } from "@/components/admin/add-donation-dialog";
 import { ListPagination } from "@/components/admin/list-pagination";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,15 +17,18 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { useDebounce } from "@/hooks/use-debounce";
+import { manualPaymentMethodLabels } from "@/lib/manual-payment";
 
 type DonationRow = {
   _id: string;
   fullName: string;
-  email: string;
+  email?: string;
   amount: number;
   currency: string;
   isAnonymous: boolean;
   status: "pending" | "paid";
+  paymentMethod?: "stripe" | keyof typeof manualPaymentMethodLabels;
+  donatedOn?: string;
   createdAt: string;
 };
 
@@ -57,11 +61,14 @@ export default function DonationsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Donations</h1>
-        <p className="text-sm text-muted-foreground">
-          {data ? `${data.total} donation${data.total === 1 ? "" : "s"}` : "Loading…"}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">Donations</h1>
+          <p className="text-sm text-muted-foreground">
+            {data ? `${data.total} donation${data.total === 1 ? "" : "s"}` : "Loading…"}
+          </p>
+        </div>
+        <AddDonationDialog onAdded={() => setPage(1)} />
       </div>
 
       <div className="relative max-w-sm">
@@ -116,9 +123,14 @@ export default function DonationsPage() {
                 {data?.items.map((d) => (
                   <TableRow key={d._id}>
                     <TableCell className="font-medium">{d.fullName}</TableCell>
-                    <TableCell>{d.email}</TableCell>
+                    <TableCell>{d.email || "—"}</TableCell>
                     <TableCell>
                       ${d.amount?.toFixed(2)} {d.currency?.toUpperCase()}
+                      {d.paymentMethod && d.paymentMethod !== "stripe" && (
+                        <div className="text-xs text-muted-foreground">
+                          {manualPaymentMethodLabels[d.paymentMethod]}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>{d.isAnonymous ? "Yes" : "No"}</TableCell>
                     <TableCell>
@@ -126,7 +138,11 @@ export default function DonationsPage() {
                         {d.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{new Date(d.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {new Date(
+                        d.donatedOn ? `${d.donatedOn}T00:00:00` : d.createdAt,
+                      ).toLocaleDateString()}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
