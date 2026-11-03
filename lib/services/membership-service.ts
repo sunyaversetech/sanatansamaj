@@ -1,9 +1,14 @@
+import { randomUUID } from "crypto";
 import type Stripe from "stripe";
 import { connectToDb } from "@/lib/db";
 import { Membership } from "@/lib/models/Membership.model";
 import { Counter } from "@/lib/models/Counter.model";
 import { sendEmail, EMAIL_FROM } from "@/lib/resend";
-import { membershipApplicationSchema, type MembershipApplication } from "@/lib/membership-schema";
+import {
+  membershipApplicationSchema,
+  type AdminMembershipInput,
+  type MembershipApplication,
+} from "@/lib/membership-schema";
 import { orgInfo, membershipPlans } from "@/lib/site-data";
 import {
   renderOrgNotificationEmail,
@@ -13,6 +18,7 @@ import {
 import { renderMembershipCardPng } from "@/lib/membership-card";
 
 export class FulfillmentError extends Error {}
+export class ManualMembershipError extends Error {}
 
 export type MembershipFulfillmentResult = {
   membershipId: string;
@@ -106,6 +112,34 @@ async function getOrAssignMembershipId(
 
   const membershipId = await getNextSequentialId(planTier);
   return { membershipId, isRenewal: false };
+}
+
+// A card that fails to render shouldn't hold up the email it's attached to.
+async function renderCardAttachment(
+  app: MembershipApplication & { membershipId: string; validTill: string },
+) {
+  const plan = membershipPlans.find((p) => p.key === app.planTier);
+  const familyMemberNames =
+    app.planTier === "family"
+      ? [app.familyMember1Name, app.familyMember2Name, app.familyMember3Name].filter(
+          (n): n is string => Boolean(n),
+        )
+      : undefined;
+
+  try {
+    const png = await renderMembershipCardPng({
+      membershipId: app.membershipId,
+      fullName: app.fullName,
+      planLabel: plan?.label ?? app.planTier,
+      planTier: app.planTier,
+      validTill: app.validTill,
+      familyMemberNames,
+    });
+    return [{ filename: "membership-card.png", content: png, contentType: "image/png" }];
+  } catch (err) {
+    console.error("renderCardAttachment: failed to render membership card, sending without it", err);
+    return undefined;
+  }
 }
 
 async function notifyOrgOfFailure(session: Stripe.Checkout.Session, reason: string) {
@@ -218,6 +252,7 @@ export async function fulfillMembership(
         $set: {
           ...application,
           status: "paid",
+          paymentMethod: "stripe",
           stripeSessionId: session.id,
           stripePaymentIntentId:
             typeof session.payment_intent === "string" ? session.payment_intent : null,
@@ -237,27 +272,7 @@ export async function fulfillMembership(
   const orgEmail = renderOrgNotificationEmail(application, logoUrl);
   const welcomeEmail = renderWelcomeEmail(application, logoUrl);
 
-  const familyMemberNames =
-    data.planTier === "family"
-      ? [data.familyMember1Name, data.familyMember2Name, data.familyMember3Name].filter(
-          (n): n is string => Boolean(n),
-        )
-      : undefined;
-
-  let cardAttachment: { filename: string; content: Buffer; contentType: string }[] | undefined;
-  try {
-    const png = await renderMembershipCardPng({
-      membershipId,
-      fullName: data.fullName,
-      planLabel,
-      planTier: data.planTier,
-      validTill,
-      familyMemberNames,
-    });
-    cardAttachment = [{ filename: "membership-card.png", content: png, contentType: "image/png" }];
-  } catch (err) {
-    console.error("fulfillMembership: failed to render membership card, sending without it", err);
-  }
+  const cardAttachment = await renderCardAttachment(application);
 
   const emailResults = await Promise.allSettled([
     sendEmail({
@@ -291,4 +306,66 @@ export async function fulfillMembership(
     email: data.email,
     validTill,
   };
+}
+
+// Records a member who paid outside of Stripe (cash at an event, bank transfer
+// and so on). Follows the same rules as checkout: one document per email, the
+// same renewal eligibility check, and an existing membershipId is always reused.
+// Only the member is emailed — the org notification announces a Stripe payment,
+// and the admin adding this member already knows about it.
+export async function addManualMembership(
+  input: AdminMembershipInput,
+  logoUrl: string,
+): Promise<{ membershipId: string; isRenewal: boolean; emailFailed: boolean }> {
+  await connectToDb();
+
+  const { sendWelcomeEmail, ...data } = input;
+  const email = data.email.toLowerCase().trim();
+
+  const eligibility = await checkRenewalEligibility(email);
+  if (!eligibility.eligible) {
+    throw new ManualMembershipError(eligibility.reason);
+  }
+
+  const { membershipId, isRenewal } = await getOrAssignMembershipId(email, data.planTier);
+  const application = {
+    ...data,
+    email,
+    membershipId,
+    currency: "aud",
+    isRenewal,
+    validTill: computeValidTill(data.planTier),
+  };
+
+  await Membership.updateOne(
+    { email },
+    {
+      $set: {
+        ...application,
+        status: "paid",
+        stripeSessionId: `manual_${randomUUID()}`,
+        stripePaymentIntentId: null,
+      },
+    },
+    { upsert: true },
+  );
+
+  let emailFailed = false;
+  if (sendWelcomeEmail) {
+    try {
+      const welcomeEmail = renderWelcomeEmail(application, logoUrl);
+      await sendEmail({
+        from: EMAIL_FROM,
+        to: email,
+        subject: welcomeEmail.subject,
+        html: welcomeEmail.html,
+        attachments: await renderCardAttachment(application),
+      });
+    } catch (err) {
+      console.error("addManualMembership: failed to send the welcome email", err);
+      emailFailed = true;
+    }
+  }
+
+  return { membershipId, isRenewal, emailFailed };
 }

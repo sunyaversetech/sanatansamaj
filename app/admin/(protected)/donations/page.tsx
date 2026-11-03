@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Search, Loader2 } from "lucide-react";
+import { ListPagination } from "@/components/admin/list-pagination";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,22 +28,32 @@ type DonationRow = {
   createdAt: string;
 };
 
-async function fetchDonations(q: string) {
+async function fetchDonations(q: string, page: number) {
   const params = new URLSearchParams();
   if (q) params.set("q", q);
+  params.set("page", String(page));
   const res = await fetch(`/api/admin/donations?${params.toString()}`);
   if (!res.ok) throw new Error("Failed to load donations");
-  return res.json() as Promise<{ items: DonationRow[]; total: number }>;
+  return res.json() as Promise<{
+    items: DonationRow[];
+    total: number;
+    page: number;
+    limit: number;
+  }>;
 }
 
 export default function DonationsPage() {
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const debouncedSearch = useDebounce(search, 300);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["admin-donations", debouncedSearch],
-    queryFn: () => fetchDonations(debouncedSearch),
+  const { data, isLoading, isError, isPlaceholderData } = useQuery({
+    queryKey: ["admin-donations", debouncedSearch, page],
+    queryFn: () => fetchDonations(debouncedSearch, page),
+    placeholderData: keepPreviousData,
   });
+
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / data.limit)) : 1;
 
   return (
     <div className="flex flex-col gap-6">
@@ -58,7 +69,10 @@ export default function DonationsPage() {
         <Input
           placeholder="Search by email…"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           className="pl-9"
         />
       </div>
@@ -120,6 +134,15 @@ export default function DonationsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {data && data.total > 0 && (
+        <ListPagination
+          page={page}
+          totalPages={totalPages}
+          disabled={isPlaceholderData}
+          onPageChange={setPage}
+        />
+      )}
     </div>
   );
 }

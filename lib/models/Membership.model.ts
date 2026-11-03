@@ -50,9 +50,21 @@ const MembershipSchema = new Schema(
     // checkout; every session id that has actually been fulfilled is kept
     // here too, so revisiting an old success-page link is recognized as
     // already-processed instead of quietly re-running fulfillment again.
+    //
+    // Members added by an admin never went through Stripe, so they hold a
+    // generated "manual_<uuid>" placeholder here. It keeps the required/unique
+    // index satisfied and is replaced if they later renew through checkout.
     stripeSessionId: { type: String, required: true, unique: true },
     stripePaymentIntentId: { type: String, default: null },
     fulfilledSessionIds: { type: [String], default: [] },
+
+    // How the latest payment was taken. Documents written before this field
+    // existed don't have it, and those were all paid through Stripe.
+    paymentMethod: {
+      type: String,
+      enum: ["stripe", "cash", "bank_transfer", "other"],
+      default: "stripe",
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true } },
 );

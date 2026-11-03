@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
   const [items, total] = await Promise.all([
     Donation.find(filter)
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean(),

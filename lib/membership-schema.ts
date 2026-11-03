@@ -37,3 +37,23 @@ export const membershipApplicationSchema = z
   });
 
 export type MembershipApplication = z.infer<typeof membershipApplicationSchema>;
+
+export const manualPaymentMethodLabels = {
+  cash: "Cash",
+  bank_transfer: "Bank Transfer",
+  other: "Other",
+} as const;
+
+// The same application details as the public form, plus what an admin records
+// about a payment that was taken outside of Stripe.
+export const adminMembershipSchema = membershipApplicationSchema.and(
+  z.object({
+    amountPaid: z
+      .number({ invalid_type_error: "Please enter the amount received" })
+      .min(0, "Amount can't be negative"),
+    paymentMethod: z.enum(["cash", "bank_transfer", "other"]),
+    sendWelcomeEmail: z.boolean(),
+  }),
+);
+
+export type AdminMembershipInput = z.infer<typeof adminMembershipSchema>;

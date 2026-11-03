@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Search, Loader2 } from "lucide-react";
+import { AddMemberDialog } from "@/components/admin/add-member-dialog";
+import { ListPagination } from "@/components/admin/list-pagination";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +17,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { useDebounce } from "@/hooks/use-debounce";
+import { manualPaymentMethodLabels } from "@/lib/membership-schema";
 
 type MembershipRow = {
   _id: string;
@@ -28,15 +31,22 @@ type MembershipRow = {
   currency: string;
   validTill?: string;
   isRenewal: boolean;
+  paymentMethod?: "stripe" | keyof typeof manualPaymentMethodLabels;
   createdAt: string;
 };
 
-async function fetchMemberships(q: string) {
+async function fetchMemberships(q: string, page: number) {
   const params = new URLSearchParams();
   if (q) params.set("q", q);
+  params.set("page", String(page));
   const res = await fetch(`/api/admin/memberships?${params.toString()}`);
   if (!res.ok) throw new Error("Failed to load memberships");
-  return res.json() as Promise<{ items: MembershipRow[]; total: number }>;
+  return res.json() as Promise<{
+    items: MembershipRow[];
+    total: number;
+    page: number;
+    limit: number;
+  }>;
 }
 
 const planLabels: Record<MembershipRow["planTier"], string> = {
@@ -47,20 +57,27 @@ const planLabels: Record<MembershipRow["planTier"], string> = {
 
 export default function MembershipsPage() {
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const debouncedSearch = useDebounce(search, 300);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["admin-memberships", debouncedSearch],
-    queryFn: () => fetchMemberships(debouncedSearch),
+  const { data, isLoading, isError, isPlaceholderData } = useQuery({
+    queryKey: ["admin-memberships", debouncedSearch, page],
+    queryFn: () => fetchMemberships(debouncedSearch, page),
+    placeholderData: keepPreviousData,
   });
+
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / data.limit)) : 1;
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Memberships</h1>
-        <p className="text-sm text-muted-foreground">
-          {data ? `${data.total} member${data.total === 1 ? "" : "s"}` : "Loading…"}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">Memberships</h1>
+          <p className="text-sm text-muted-foreground">
+            {data ? `${data.total} member${data.total === 1 ? "" : "s"}` : "Loading…"}
+          </p>
+        </div>
+        <AddMemberDialog onAdded={() => setPage(1)} />
       </div>
 
       <div className="relative max-w-sm">
@@ -68,7 +85,10 @@ export default function MembershipsPage() {
         <Input
           placeholder="Search by email…"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           className="pl-9"
         />
       </div>
@@ -123,6 +143,11 @@ export default function MembershipsPage() {
                     </TableCell>
                     <TableCell>
                       ${m.amountPaid?.toFixed(2)} {m.currency?.toUpperCase()}
+                      {m.paymentMethod && m.paymentMethod !== "stripe" && (
+                        <div className="text-xs text-muted-foreground">
+                          {manualPaymentMethodLabels[m.paymentMethod]}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>{m.validTill || "—"}</TableCell>
                   </TableRow>
@@ -132,6 +157,15 @@ export default function MembershipsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {data && data.total > 0 && (
+        <ListPagination
+          page={page}
+          totalPages={totalPages}
+          disabled={isPlaceholderData}
+          onPageChange={setPage}
+        />
+      )}
     </div>
   );
 }
