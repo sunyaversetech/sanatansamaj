@@ -4,6 +4,7 @@ import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Search, Loader2 } from "lucide-react";
 import { AddMemberDialog } from "@/components/admin/add-member-dialog";
+import { DownloadMembersPdfButton } from "@/components/admin/download-members-pdf-button";
 import { ListPagination } from "@/components/admin/list-pagination";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -77,7 +78,10 @@ export default function MembershipsPage() {
             {data ? `${data.total} member${data.total === 1 ? "" : "s"}` : "Loading…"}
           </p>
         </div>
-        <AddMemberDialog onAdded={() => setPage(1)} />
+        <div className="flex flex-wrap gap-2">
+          <DownloadMembersPdfButton />
+          <AddMemberDialog onAdded={() => setPage(1)} />
+        </div>
       </div>
 
       <div className="relative max-w-sm">
