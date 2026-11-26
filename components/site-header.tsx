@@ -53,7 +53,9 @@ export function SiteHeader() {
         </nav>
 
         <Button asChild className="hidden md:inline-flex">
-          <Link href="/membership/apply">Book a Pujari</Link>
+          <Link href="https://whaustralia.com/businesses/ssapujari">
+            Book a Pujari
+          </Link>
         </Button>
 
         <button
